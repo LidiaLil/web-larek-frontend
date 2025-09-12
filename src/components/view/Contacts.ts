@@ -18,7 +18,7 @@ export class Contacts extends Form<IContacts> {
 
     // Конструктор принимает родительский элемент и обработчик событий
     constructor(
-        container: HTMLElement,
+        container: HTMLFormElement,
         protected events: IEvents
     ) {
         super(container, events);

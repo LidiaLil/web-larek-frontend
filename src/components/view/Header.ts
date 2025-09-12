@@ -30,6 +30,7 @@ export class Header extends Component<IHeader> {
 	// Сеттер для счетчика товаров в корине
 	set counter(value: number) {
         this.setText(this.counterElement, value); //Используем метод родителя
+		console.log('Header counter:', value);
 
         // Дополнительная логика для скрытия/показа счетчика при 0
         // if (value === 0) {
