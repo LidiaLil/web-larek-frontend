@@ -38,6 +38,8 @@ const config = {
     new DefinePlugin({
       'process.env.DEVELOPMENT': !isProduction,
       'process.env.API_ORIGIN': JSON.stringify(process.env.API_ORIGIN ?? '')
+      // 'process.env.API_ORIGIN': JSON.stringify(process.env.API_ORIGIN ?? ''),
+      // 'process.env.API_TOKEN': JSON.stringify(process.env.API_TOKEN ?? '')
     })
   ],
   module: {

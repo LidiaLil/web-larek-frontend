@@ -1,12 +1,13 @@
 // Хорошая практика даже простые типы выносить в алиасы
 // Зато когда захотите поменять это достаточно сделать в одном месте
-type EventName = string | RegExp;
-type Subscriber = Function;
-type EmitterEvent = {
+type EventName = string | RegExp;// Имя события может быть строкой или регулярным выражением
+type Subscriber = Function;          // Функция-подписчик
+type EmitterEvent = {                // Структура события для глобальных подписчиков
     eventName: string,
     data: unknown
 };
 
+// Интерфейс брокера событий
 export interface IEvents {
     on<T extends object>(event: EventName, callback: (data: T) => void): void;
     emit<T extends object>(event: string, data?: T): void;
@@ -19,7 +20,7 @@ export interface IEvents {
  * или слушать события по шаблону например
  */
 export class EventEmitter implements IEvents {
-    _events: Map<EventName, Set<Subscriber>>;
+    _events: Map<EventName, Set<Subscriber>>; // Хранилище событий и подписчиков
 
     constructor() {
         this._events = new Map<EventName, Set<Subscriber>>();
@@ -30,7 +31,7 @@ export class EventEmitter implements IEvents {
      */
     on<T extends object>(eventName: EventName, callback: (event: T) => void) {
         if (!this._events.has(eventName)) {
-            this._events.set(eventName, new Set<Subscriber>());
+            this._events.set(eventName, new Set<Subscriber>()); // Создаем Set для нового события
         }
         this._events.get(eventName)?.add(callback);
     }

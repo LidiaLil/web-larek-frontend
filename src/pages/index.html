@@ -39,7 +39,7 @@
 		</div>
 	</div>
 
-	<div class="modal modal_active">
+	<!-- <div class="modal modal_active">
 		<div class="modal__container">
 			<button class="modal__close" aria-label="закрыть"></button>
 			<div class="modal__content">
@@ -57,9 +57,9 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div> -->
 
-	<div class="modal">
+	<!-- <div class="modal">
 		<div class="modal__container">
 			<button class="modal__close" aria-label="закрыть"></button>
 			<div class="modal__content">
@@ -92,9 +92,9 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div> -->
 
-	<div class="modal">
+	<!-- <div class="modal">
 		<div class="modal__container">
 			<button class="modal__close" aria-label="закрыть"></button>
 			<div class="modal__content">
@@ -118,9 +118,9 @@
 				</form>
 			</div>
 		</div>
-	</div>
+	</div> -->
 
-	<div class="modal">
+	<!-- <div class="modal">
 		<div class="modal__container">
 			<button class="modal__close" aria-label="закрыть"></button>
 			<div class="modal__content">
@@ -128,11 +128,23 @@
 					<div class="order">
 						<label class="order__field">
 							<span class="form__label modal__title">Email</span>
-							<input class="form__input" type="text" placeholder="Введите Email" />
+							<input 
+							class="form__input" 
+							type="email" 
+							placeholder="example@mail.ru" 
+							pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    						data-error-message="Пожалуйста, введите корректный email адрес"
+    						required/>
 						</label>
 						<label class="order__field">
 							<span class="form__label modal__title">Телефон</span>
-							<input class="form__input" type="text" placeholder="+7 (" />
+							<input 
+							class="form__input" 
+							type="tel" 
+							placeholder="+7 (999) 999-99-99" 
+        					pattern="^\+7\s\d{3}\s\d{3}\s\d{2}\s\d{2}$"
+        					data-error-message="Номер должен начинаться с +7 и содержать 10 цифр"
+        					required/>
 						</label>
 					</div>
 					<div class="modal__actions">
@@ -141,9 +153,9 @@
 				</form>
 			</div>
 		</div>
-	</div>
+	</div> -->
 
-	<div class="modal">
+	<!-- <div class="modal">
 		<div class="modal__container">
 			<button class="modal__close" aria-label="закрыть"></button>
 			<div class="modal__content">
@@ -154,7 +166,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div> -->
 
 	<template id="success">
 		<div class="order-success">
