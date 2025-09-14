@@ -28,12 +28,12 @@ const events = new EventEmitter();
 const template = {
 	cardCatalogTemplate: ensureElement<HTMLTemplateElement>('#card-catalog'),
 	cardPreviewTemplate: ensureElement<HTMLTemplateElement>('#card-preview'),
+	cardBasketTemplate: ensureElement<HTMLTemplateElement>('#card-basket'),
 	successTemplate: ensureElement<HTMLTemplateElement>('#success'),
 	basketTemplate: ensureElement<HTMLTemplateElement>('#basket'),
-	orderTemplate: ensureElement<HTMLTemplateElement>('#order'), 
+	orderTemplate: ensureElement<HTMLTemplateElement>('#order'),
 	contactsTemplate: ensureElement<HTMLTemplateElement>('#contacts'),
 };
-
 
 // Глобальные контейнеры
 const galleryContainer = ensureElement<HTMLElement>('.gallery'); //для карточек
@@ -51,19 +51,25 @@ const model = {
 //UI-компоненты (Объект view-компонентов)
 const views = {
 	basket: new BasketView(cloneTemplate(template.basketTemplate), events), // корзины
-	contacts: new Contacts(cloneTemplate(template.contactsTemplate) as HTMLFormElement, events), // формы контактов
+	contacts: new Contacts(
+		cloneTemplate(template.contactsTemplate) as HTMLFormElement,
+		events
+	), // формы контактов
 	gallery: new Gallery(galleryContainer, events), // галереи товаров
 	success: new SuccessView(cloneTemplate(template.successTemplate), events), // успешного заказа
 	// Формы
-	orderForm: new Order(cloneTemplate(template.orderTemplate) as HTMLFormElement, events),
-	contactsForm: new Contacts(cloneTemplate(template.contactsTemplate) as HTMLFormElement, events),
+	orderForm: new Order(
+		cloneTemplate(template.orderTemplate) as HTMLFormElement,
+		events
+	),
+	contactsForm: new Contacts(
+		cloneTemplate(template.contactsTemplate) as HTMLFormElement,
+		events
+	),
 };
 
-
-const modal = new Modal(modalContainer, events);//Инициализиация модалки
-const header = new Header(headerContainer, events);//иниц-я корзины в хедере
-
-
+const modal = new Modal(modalContainer, events); //Инициализиация модалки
+const header = new Header(headerContainer, events); //иниц-я корзины в хедере
 
 // Чтобы мониторить все события, для отладки
 events.onAll((event) => {
@@ -92,7 +98,7 @@ events.on(AppStateChanges.items, () => {
 			);
 			const renderedCard = card.render(item);
 			// Обновляем состояние кнопки при создании
-            card.updateButtonState(model.basket);
+			card.updateButtonState(model.basket);
 
 			// Вешаем обработчик на отрендеренную выбранную карточку
 			renderedCard.addEventListener('click', () =>
@@ -101,17 +107,6 @@ events.on(AppStateChanges.items, () => {
 			return renderedCard;
 		})
 	);
-});
-
-// Обработчики событий для модальных окон
-events.on(AppStateChanges.modalOpen, () => {
-	// Блокируем прокрутку страницы при открытии модалки
-	document.body.style.overflow = 'hidden';
-});
-
-events.on(AppStateChanges.modalClose, () => {
-	// Разблокируем прокрутку страницы при закрытии модалки
-	document.body.style.overflow = 'auto';
 });
 
 // Обработчик события выбора карточки товара
@@ -126,57 +121,78 @@ events.on(AppStateChanges.select, (data: { id: string }) => {
 		);
 		const renderedCard = card.render(item);
 		// Обновляем состояние кнопки в превью
-        card.updateButtonState(model.basket);
+		card.updateButtonState(model.basket);
 		modal.setContent(renderedCard);
 		modal.toggleState(true);
 	}
 });
 
-// Обработчик добавления/удаления из корзины
+// Обработчик добавления/удаления карточки товара
 events.on(AppStateChanges.basket, (data: { id: string }) => {
-    const item = model.card.items.find(product => product.id === data.id);
-    if (item) {
-        // Проверяем наличие в корзине
-        if (model.basket.isInBasket(item.id)) {
-            model.basket.removeFromBasket(item.id);
-            console.log('Товар удален из корзины:', item.title);
-        } else {
-            model.basket.addToBasket(item);
-            console.log('Товар добавлен в корзину:', item.title);
-        }
-        
-        // Обновляем счетчик в хедере
-        header.counter = model.basket.getBasketCount();
-        
-        // Закрываем модальное окно если оно открыто
-        modal.toggleState(false);
-    }
+	const item = model.card.items.find((product) => product.id === data.id);
+	if (item) {
+		// Проверяем наличие в корзине
+		if (model.basket.isInBasket(item.id)) {
+			model.basket.removeFromBasket(item.id);
+			console.log('Товар удален из корзины:', item.title);
+		} else {
+			model.basket.addToBasket(item);
+			console.log('Товар добавлен в корзину:', item.title);
+		}
+
+		// Обновляем счетчик в хедере
+		header.counter = model.basket.getBasketCount();
+
+		// Закрываем модальное окно если оно открыто
+		modal.toggleState(false);
+		
+	}
 });
 
-//Отображения корзины
-events.on(AppStateChanges.basket, () => {
-    // Вызываем метод обновления элементов корзины
-    views.basket.updateItems(
-        // Берем все товары из корзины и преобразуем их
-        model.basket.getItems().map((item, index) => {
-            // Для каждого товара создаем карточку
-            const card = new CardView(
-                cloneTemplate(template.basketTemplate), // Шаблон для корзины
-                events
-            );
-            //Рендерим карточку с данными товара
-            const renderedCard = card.render(item);
-            
-            //Устанавливаем порядковый номер товара (1, 2, 3...)
-            card.index = (index + 1).toString();
-            
-            //Скрываем кнопку "В корзину" в карточках корзины
-            if (card['_addButton']) {
-                card['_addButton'].style.display = 'none';
-            }
-            
-            // Возвращаем готовую карточку для отображения
-            return renderedCard;
-        })
-    );
+// Обработчик открытия корзины
+events.on(AppStateChanges.basketOpen, () => {
+	// Обновляем общую сумму корзины
+    views.basket.setTotal(model.basket.getBasketTotal());
+    console.log('общая сумма заказа:', model.basket.getBasketTotal);
+    // Создаем элементы корзины
+    let index = 0;
+    const basketItems = model.basket.getItems().map((item) => {
+        index = index + 1;
+        
+        const card = new CardView(
+            cloneTemplate(template.cardBasketTemplate),
+            events
+        );
+        
+        // Рендерим карточку с данными товара
+        const renderedCard = card.render(item);
+		// Устанавливаем порядковый номер
+        const indexElement = renderedCard.querySelector('.basket__item-index');
+        if (indexElement) {
+            indexElement.textContent = index.toString();
+			console.log('Товар под номером:', item.index);
+        }
+        
+        // Добавляем обработчик удаления
+        const deleteButton = renderedCard.querySelector('.basket__item-delete');
+        if (deleteButton) {
+            deleteButton.addEventListener('click', () => {
+                events.emit(AppStateChanges.basket, { id: item.id });
+				console.log('Товар под номером:', item.index, 'удален');
+            });
+        }
+        
+        return renderedCard;
+    });
+    
+    // Обновляем элементы корзины
+    views.basket.updateItems(basketItems);
+    
+    // Показываем модальное окно с корзиной
+    modal.setContent(views.basket.render());
+    modal.toggleState(true);
+    console.log('корзина открыта');
+    // Обновляем счетчик в хедере
+    header.counter = model.basket.getBasketCount();
 });
+

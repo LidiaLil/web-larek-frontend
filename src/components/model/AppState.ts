@@ -18,9 +18,12 @@ export enum AppStateChanges {
     select = 'item:select', // когда пользователь выбирает товар для просмотра
     modalOpen = 'modal:open', // при открытии любой модалки
     modalClose = 'modal:close', // при закрытии любой модалки
-    basket = 'basket:change',// при добавлении/удалении товаров из корзины
+    basket = 'basket:changed',// при добавлении/удалении из корзины
+    basketOpen = 'basket:open',// открытие корзины
     total = 'total:change',  // Изменилась сумма корзины
-    order = 'order:change', // при заполнении данных заказа (адрес,способ оплаты и контакты)
+    order = 'order:change', // при заполнении данных заказа 
+    orderOpen = 'order:open',// открытие формы заказа
+    contactsOpen = 'сщтефсе:open',// открытие формы контактов
     message = 'message:change', // при показе сообщения об ошибке или успехе
     
 }

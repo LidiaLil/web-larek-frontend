@@ -1,6 +1,7 @@
 import { ensureElement } from '../../utils/utils';
 import { Component } from '../base/component';
 import { IEvents } from '../base/events';
+import { AppStateChanges } from '../model/AppState';
 
 interface IHeader {
 	counter: number;
@@ -13,13 +14,14 @@ export class Header extends Component<IHeader> {
 
 	constructor(container: HTMLElement, events: IEvents) {
 		super(container); // Вызов конструктора родителя
-
+		this.events = events;
 		// Инициализация элементов
 		this.basketButton = ensureElement<HTMLButtonElement>('.header__basket', container)
 		this.counterElement = ensureElement<HTMLElement>('.header__basket-counter', container)
-		this.basketButton.addEventListener('click', () => {
-			this.events.emit('basket:open')
-		})
+		// Обработчик клика на кнопку корзины
+        this.basketButton.addEventListener('click', () => {
+            this.events.emit(AppStateChanges.basketOpen); // Эмитируем событие открытия корзины
+        });
 	}
 
 	//получаем cсылку на DOM-элемент кнопки корзины

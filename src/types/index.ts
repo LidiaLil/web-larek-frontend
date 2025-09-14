@@ -9,6 +9,7 @@ export interface IItem {
     title: string;
     category: string;
     price: number | null; // если не указана, то null
+    index?: string;
 }
 
 // Данные о заказе, которые отправляются на сервер
