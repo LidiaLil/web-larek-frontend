@@ -13,6 +13,7 @@ export class Order extends Form<IOrder> {
     protected _cashButton: HTMLButtonElement;
     protected _addressInput: HTMLInputElement;
     
+    
     constructor(
         container: HTMLFormElement,
         protected events: IEvents

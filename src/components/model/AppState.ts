@@ -98,51 +98,51 @@ export class AppState {
 			this.order[field] = value;
 		}
 		// Проверяем валидность при каждом изменении
-        this.validation();
-        
-        // Если все данные заполнены и валидны, эмитируем событие завершения
-        if (this.order.payment && this.order.address && this.order.email && this.order.phone) {
-            if (this.validation()) {
-                this.order.items = this.basket.items;
-                this.order.total = this.basket.total;
-                this.events.emit(AppStateChanges.orderDone, this.order);
-            }
-        }
-    }
+		this.validation();
+
+		// Если все данные заполнены и валидны, эмитируем событие завершения
+		if (
+			this.order.payment &&
+			this.order.address &&
+			this.order.email &&
+			this.order.phone
+		) {
+			if (this.validation()) {
+				this.order.items = this.basket.items;
+				this.order.total = this.basket.total;
+				this.events.emit(AppStateChanges.orderDone, this.order);
+			}
+		}
+	}
 
 	validation() {
 		// Создаем временный объект для хранения ошибок валидации
 		const errors: typeof this.FormErrors = {};
-		 // Валидация способа оплаты
-        if (!this.order.payment) {
-            errors.payment = 'Выберите способ оплаты';
-        }
-        
-        // Валидация адреса
-        if (!this.order.address) {
-            errors.address = 'Введите адрес доставки';
-        }
-        
-        // Валидация email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!this.order.email) {
-            errors.email = 'Введите email';
-        } else if (!emailRegex.test(this.order.email)) {
-            errors.email = 'Введите корректный email';
-        }
-        
-        // Валидация телефона
-        const phoneRegex = /^\+?[78][-\(]?\d{3}\)?-?\d{3}-?\d{2}-?\d{2}$/;
-        if (!this.order.phone) {
-            errors.phone = 'Введите телефон';
-        } else if (!phoneRegex.test(this.order.phone)) {
-            errors.phone = 'Введите корректный телефон';
-        }
-        // Сохраняем найденные ошибки в свойство класса
-		this.FormErrors = errors;
-        // Отправляем событие о наличии ошибок валидации
-		this.events.emit(AppStateChanges.error);
-        // Возвращаем true если ошибок нет (объект errors пустой), иначе false
-		return !Object.keys(errors).length;
+		// Валидация способа оплаты
+		if (!this.order.payment) {
+			errors.payment = 'Выберите способ оплаты';
+		}
+
+		// Валидация адреса
+		if (!this.order.address) {
+			errors.address = 'Введите адрес доставки';
+		}
+
+		// Валидация email
+		if (!this.order.email) {
+			errors.email = 'Введите email';
+
+			// Валидация телефона
+			if (!this.order.phone) {
+				errors.phone = 'Введите телефон';
+
+				// Сохраняем найденные ошибки в свойство класса
+				this.FormErrors = errors;
+				// Отправляем событие о наличии ошибок валидации
+				this.events.emit(AppStateChanges.error);
+				// Возвращаем true если ошибок нет (объект errors пустой), иначе false
+				return !Object.keys(errors).length;
+			}
+		}
 	}
 }

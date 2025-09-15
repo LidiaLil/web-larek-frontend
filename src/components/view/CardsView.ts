@@ -12,6 +12,7 @@ export class CardView extends Component<IItem> {
 	protected _price: HTMLElement;
 	protected _addButton?: HTMLButtonElement | null; // Для карточек каталога
 	protected _id?: string;
+	protected _indexElement?: HTMLElement;
 	constructor(container: HTMLElement, 
 		events?: ICardActions) {
 		super(container); // Вызов конструктора родителя
@@ -22,6 +23,7 @@ export class CardView extends Component<IItem> {
 		this._category = container.querySelector('.card__category');
 		this._price = ensureElement<HTMLElement>('.card__price', container);
 		this._addButton = container.querySelector('.card__button');
+		this._indexElement = container.querySelector('.basket__item-index');
 
 		// Добавляем обработчик с проверкой на существование кнопки
 		// Обработчик для кнопки добавления/удаления
@@ -68,6 +70,12 @@ export class CardView extends Component<IItem> {
 		this.setText(this._addButton, value);
 	}
 
+    set index(value: string) {
+        if (this._indexElement) {
+            this.setText(this._indexElement, value);
+        }
+    }
+
 	get title() {
 		return this._title.textContent || '';
 	}
@@ -90,6 +98,8 @@ export class CardView extends Component<IItem> {
             this._addButton.textContent = 'Купить';
             this._addButton.disabled = false;
         }
+
+		
     }
 	
 }
