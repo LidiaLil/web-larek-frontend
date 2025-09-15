@@ -161,6 +161,9 @@ events.on(AppStateChanges.basket, () => {
     // Обновляем счетчик в хедере
     header.counter = model.basket.getBasketCount();
 
+	// Обновляем состояние кнопки в корзине
+    const hasItems = model.basket.getBasketCount() > 0;
+    views.basket.setButtonState(hasItems);
     // Генерируем карточки для корзины
     const basketCards = model.basket.getItems().map((item: IItem) => {
         const card = new CardView(
@@ -186,21 +189,42 @@ events.on(AppStateChanges.basket, () => {
 
 // Открытие корзины
 events.on(AppStateChanges.basketOpen, () => {
+	// Устанавливаем начальное состояние кнопки
+    const hasItems = model.basket.getBasketCount() > 0;
+    views.basket.setButtonState(hasItems);
     // просто показываем модалку с корзиной
     modal.modalContent = views.basket.element;
     modal.modalOpen();
 
 });
 
-    
-//     // Обновляем элементы корзины
-//     views.basket.updateItems(basketItems);
-    
-//     // Показываем модальное окно с корзиной
-//     // modal.setContent(views.basket.render());
-//     // modal.toggleState(true);
-//     // console.log('корзина открыта');
-//     // // Обновляем счетчик в хедере
-//     // header.counter = model.basket.getBasketCount();
-// });
+// Форма заказа
+events.on(AppStateChanges.orderOpen, () => {
+    // Устанавливаем содержимое модального окна
+    modal.modalContent = views.orderForm.render({
+        address: '',
+        payment: '',
+    });
+    // Открываем модальное окно
+    modal.modalOpen();
+});
 
+// Способ оплаты
+events.on(AppStateChanges.contactsOpen, () =>{
+	modal.modalContent = views.contactsForm.render({
+		email: '',
+		phone: '',
+	})
+
+	// Открываем модальное окно
+    modal.modalOpen();
+})
+
+// Обработчик успешного завершения заказа
+events.on('order:success', () => {
+    // Проверяем валидность через AppState
+    if (model.appState.validation()) {
+        events.emit(AppStateChanges.success);
+        model.appState.clearBasket();
+    }
+});

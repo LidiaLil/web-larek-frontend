@@ -28,11 +28,13 @@ export class Order extends Form<IOrder> {
         this._cardButton.addEventListener('click', (e) => {
             e.preventDefault();
             this.selectPayment('card');
+            this.emitChangeEvent();//Автосохранение данных
         });
 
         this._cashButton.addEventListener('click', (e) => {
             e.preventDefault();
             this.selectPayment('cash');
+            this.emitChangeEvent();
         });
 
         // Обработчик для адреса
@@ -41,10 +43,10 @@ export class Order extends Form<IOrder> {
         });
 
         // Обработчик отправки формы
-        this.formElement.addEventListener('submit', (event) => {
+        this.container.addEventListener('submit', (event) => {
             event.preventDefault();
-            this.events.emit(AppStateChanges.order, this.getFormData());
-            this.events.emit(AppStateChanges.order, { modal: AppStateModals.contacts });
+            this.emitChangeEvent();
+            this.events.emit(AppStateChanges.contactsOpen);
             
         });
     }
@@ -58,8 +60,6 @@ export class Order extends Form<IOrder> {
             this._cashButton.classList.add('button_alt-active');
             this._cardButton.classList.remove('button_alt-active');
         }
-        
-        this.emitChangeEvent();
     }
 
     // Эмит события изменения данных
@@ -76,6 +76,14 @@ export class Order extends Form<IOrder> {
             return 'cash';
         }
         return '';
+    }
+
+    // Получение данных формы
+    getFormData(): Record<string, string> {
+        return {
+            payment: this.getSelectedPayment(),
+            address: this._addressInput.value
+        };
     }
 
 }

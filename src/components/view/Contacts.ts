@@ -30,24 +30,31 @@ export class Contacts extends Form<IContacts> {
 
         // Добавляем обработчики изменений
         this._phoneInput.addEventListener('input', () => {
-            this.events.emit(AppStateChanges.order, this.getFormData)
+            this.events.emit(AppStateChanges.order, this.getFormData())
         });
 
         this._emailInput.addEventListener('input', () => {
-            this.events.emit(AppStateChanges.order, this.getFormData)
+            this.events.emit(AppStateChanges.order, this.getFormData())
         });
 
         // Обработчик отправки формы
-        this.formElement.addEventListener('submit', (event) => {
+        this.container.addEventListener('submit', (event) => {
             event.preventDefault();
             this.events.emit(AppStateChanges.order, this.getFormData());
-            this.events.emit(AppStateChanges.modalOpen, { modal: AppStateModals.success });
-            
+            // Отправляем событие успешного завершения заказа
+            this.events.emit('order:success');
         });
     }
 
-    // Получение данных
-    
+    // Метод для получения данных формы
+    getFormData(): Record<string, string> {
+        return {
+            phone: this._phoneInput.value,
+            email: this._emailInput.value
+        };
+    }
+
+    // Геттеры
     get phoneInput(): HTMLInputElement {
         return this._phoneInput;
     }
@@ -55,5 +62,4 @@ export class Contacts extends Form<IContacts> {
     get emailInput(): HTMLInputElement {
         return this._emailInput;
     }
-
 }

@@ -32,9 +32,21 @@ export class BasketView extends Component<IBasketView> {
         this._basketButton.addEventListener('click', (event) => {
             event.preventDefault();
             // Эмитируем событие открытия модального окна контактов
-            this.events.emit(AppStateChanges.modalOpen, { modal: AppStateModals.contacts });
+            this.events.emit(AppStateChanges.orderOpen);
         });
 
+    }
+
+    // Метод для обновления состояния кнопки
+    setButtonState(isEnabled: boolean): void {
+        this._basketButton.disabled = !isEnabled;
+        
+        // Добавляем стили для визуального отключения
+        if (!isEnabled) {
+            this._basketButton.classList.add('button_disabled');
+        } else {
+            this._basketButton.classList.remove('button_disabled');
+        }
     }
 
     //Метод обновления представления

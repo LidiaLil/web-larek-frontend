@@ -26,9 +26,13 @@ export enum AppStateChanges {
 	orderDone = 'order:done', // заказ готов к завершению
 	contactsOpen = 'contact:open', // открытие формы контактов
 	error = 'message:error', // при показе сообщения об ошибке или успехе
+	success = 'order:success', // Заказ оформлен
 }
 
 export class AppState {
+	setFieldsOrder(arg0: string, payment: string) {
+		throw new Error('Method not implemented.');
+	}
 	items: IItem[] = [];
 	selectedItem: IItem | null = null; // Свойство для хранения выбранного товара
 	basket: IBasket = {
@@ -93,28 +97,47 @@ export class AppState {
 		} else {
 			this.order[field] = value;
 		}
-		if (this.order.payment && this.validation()) {
-			this.order.items = this.basket.items;
-			this.order.total = this.basket.total;
-			this.events.emit(AppStateChanges.orderDone, this.order);
-		}
-	}
+		// Проверяем валидность при каждом изменении
+        this.validation();
+        
+        // Если все данные заполнены и валидны, эмитируем событие завершения
+        if (this.order.payment && this.order.address && this.order.email && this.order.phone) {
+            if (this.validation()) {
+                this.order.items = this.basket.items;
+                this.order.total = this.basket.total;
+                this.events.emit(AppStateChanges.orderDone, this.order);
+            }
+        }
+    }
 
 	validation() {
 		// Создаем временный объект для хранения ошибок валидации
 		const errors: typeof this.FormErrors = {};
-		if (!this.order.payment) {
-			errors.payment = 'Выберите способ оплаты';
-		}
-		if (!this.order.address) {
-			errors.payment = 'Введите адрес доставки';
-		}
-		if (!this.order.email) {
-			errors.payment = 'Введите email';
-		}
-		if (!this.order.phone) {
-			errors.payment = 'Введите телефон';
-		}
+		 // Валидация способа оплаты
+        if (!this.order.payment) {
+            errors.payment = 'Выберите способ оплаты';
+        }
+        
+        // Валидация адреса
+        if (!this.order.address) {
+            errors.address = 'Введите адрес доставки';
+        }
+        
+        // Валидация email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!this.order.email) {
+            errors.email = 'Введите email';
+        } else if (!emailRegex.test(this.order.email)) {
+            errors.email = 'Введите корректный email';
+        }
+        
+        // Валидация телефона
+        const phoneRegex = /^\+?[78][-\(]?\d{3}\)?-?\d{3}-?\d{2}-?\d{2}$/;
+        if (!this.order.phone) {
+            errors.phone = 'Введите телефон';
+        } else if (!phoneRegex.test(this.order.phone)) {
+            errors.phone = 'Введите корректный телефон';
+        }
         // Сохраняем найденные ошибки в свойство класса
 		this.FormErrors = errors;
         // Отправляем событие о наличии ошибок валидации
