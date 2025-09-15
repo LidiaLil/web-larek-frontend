@@ -1,66 +1,125 @@
-import { IItem } from "../../types";
-import { IEvents } from "../base/events";
+import { IBasket, IItem, IOrder, IUser, PaymentMethod } from '../../types';
+import { IEvents } from '../base/events';
 
 //  Какие модальные окна у нас есть
 export enum AppStateModals {
-	item = 'modal:item',        // Описание товара (добавить/убрать из корзины)
-    place = 'modal:place',      // Адрес и способ оплаты
-    basket = 'modal:basket',    // Корзина (пустая или с товарами)
-    contacts = 'modal:contacts', // Телефон и email
-    success = 'modal:success',  // Заказ оформлен
-    error = 'modal:error',      // Ошибка (если не указан адрес и т.д.)
-    none = 'modal:none',        // Нет открытых модалок
+	item = 'modal:item', // Описание товара (добавить/убрать из корзины)
+	place = 'modal:place', // Адрес и способ оплаты
+	basket = 'modal:basket', // Корзина (пустая или с товарами)
+	contacts = 'modal:contacts', // Телефон и email
+	success = 'modal:success', // Заказ оформлен
+	error = 'modal:error', // Ошибка (если не указан адрес и т.д.)
+	none = 'modal:none', // Нет открытых модалок
 }
 
 // Какие изменения состояния приложения могут происходить
 export enum AppStateChanges {
-    items = 'items:change', // когда загрузились все товары с сервера
-    select = 'item:select', // когда пользователь выбирает товар для просмотра
-    modalOpen = 'modal:open', // при открытии любой модалки
-    modalClose = 'modal:close', // при закрытии любой модалки
-    basket = 'basket:changed',// при добавлении/удалении из корзины
-    basketOpen = 'basket:open',// открытие корзины
-    total = 'total:change',  // Изменилась сумма корзины
-    order = 'order:change', // при заполнении данных заказа 
-    orderOpen = 'order:open',// открытие формы заказа
-    contactsOpen = 'сщтефсе:open',// открытие формы контактов
-    message = 'message:change', // при показе сообщения об ошибке или успехе
-    
+	items = 'items:change', // когда загрузились все товары с сервера
+	select = 'item:select', // когда пользователь выбирает товар для просмотра
+	modalOpen = 'modal:open', // при открытии любой модалки
+	modalClose = 'modal:close', // при закрытии любой модалки
+	basket = 'basket:changed', // при добавлении/удалении из корзины
+	basketOpen = 'basket:open', // открытие корзины
+	total = 'total:change', // Изменилась сумма корзины
+	order = 'order:change', // при заполнении данных заказа
+	orderOpen = 'order:open', // открытие формы заказа
+	orderDone = 'order:done', // заказ готов к завершению
+	contactsOpen = 'contact:open', // открытие формы контактов
+	error = 'message:error', // при показе сообщения об ошибке или успехе
 }
 
 export class AppState {
-    private _items: IItem[] = [];
-    private _selectedItem: IItem | null = null; // Свойство для хранения выбранного товара
+	items: IItem[] = [];
+	selectedItem: IItem | null = null; // Свойство для хранения выбранного товара
+	basket: IBasket = {
+		items: [],
+		total: 0,
+	};
+	FormErrors: Partial<Record<keyof IUser, string>> = {};
+	order: IOrder = {
+		payment: 'cash',
+		email: '',
+		phone: '',
+		address: '',
+		total: 0,
+		items: [],
+	};
+	constructor(
+		protected data: Partial<AppState>, //все свойства AppState становятся необязательными
+		protected events: IEvents
+	) {}
 
-    constructor(
-        protected data: Partial<AppState>, //все свойства AppState становятся необязательными
-        protected events: IEvents) {}
+	// Метод для установки списка товаров
+	setItems(items: IItem[]): void {
+		this.items = items;
+		this.events.emit(AppStateChanges.items);
+	}
 
-        // Метод для установки списка товаров
-        setItems(items: IItem[]): void {
-        this._items = items;
-        this.events.emit(AppStateChanges.items);
-    }
+	// Метод для установки выбранного товара
+	setSelectedItem(item: IItem): void {
+		this.selectedItem = item; //Сохраняем данные
+		this.events.emit(AppStateChanges.select, item); // Уведомляем систему
+	}
 
-    // Метод для установки выбранного товара
-    setSelectedItem(item: IItem): void {
-        this._selectedItem = item;//Сохраняем данные
-        this.events.emit(AppStateChanges.select, item); // Уведомляем систему
-    }
+	addBasket(item: IItem) {
+		this.addBasket(item);
+	}
 
-    // Геттер для получения списка товаров
-    get items(): IItem[] {
-        return this._items;
-    }
+	inBasket(item: IItem) {
+		this.inBasket(item);
+	}
 
-    // Геттер для получения выбранного товара
-    get selectedItem(): IItem | null {
-        return this._selectedItem;
-    }
+	removeFromBasket(item: IItem) {
+		this.removeFromBasket(item);
+	}
 
-    // Дополнительно можно добавить метод очистки выбранного товара
-    clearSelectedItem(): void {
-        this._selectedItem = null;
-        this.events.emit(AppStateChanges.select, null);
-    }
+	clearBasket() {
+		this.clearBasket();
+	}
+
+	setPayMethod(method: PaymentMethod) {
+		this.order.payment = method;
+	}
+
+	// Дополнительно можно добавить метод очистки выбранного товара
+	// clearSelectedItem(): void {
+	//     this.selectedItem = null;
+	//     this.events.emit(AppStateChanges.select, null);
+	// }
+
+	setFieldsOder(field: keyof IUser, value: string) {
+		if (field === 'payment') {
+			this.setPayMethod(value as PaymentMethod);
+		} else {
+			this.order[field] = value;
+		}
+		if (this.order.payment && this.validation()) {
+			this.order.items = this.basket.items;
+			this.order.total = this.basket.total;
+			this.events.emit(AppStateChanges.orderDone, this.order);
+		}
+	}
+
+	validation() {
+		// Создаем временный объект для хранения ошибок валидации
+		const errors: typeof this.FormErrors = {};
+		if (!this.order.payment) {
+			errors.payment = 'Выберите способ оплаты';
+		}
+		if (!this.order.address) {
+			errors.payment = 'Введите адрес доставки';
+		}
+		if (!this.order.email) {
+			errors.payment = 'Введите email';
+		}
+		if (!this.order.phone) {
+			errors.payment = 'Введите телефон';
+		}
+        // Сохраняем найденные ошибки в свойство класса
+		this.FormErrors = errors;
+        // Отправляем событие о наличии ошибок валидации
+		this.events.emit(AppStateChanges.error);
+        // Возвращаем true если ошибок нет (объект errors пустой), иначе false
+		return !Object.keys(errors).length;
+	}
 }

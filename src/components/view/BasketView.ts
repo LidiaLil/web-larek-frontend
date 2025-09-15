@@ -61,4 +61,8 @@ export class BasketView extends Component<IBasketView> {
     get basketButton() {
         return this._basketButton;
     }
+
+    get element(): HTMLElement {
+        return this.container;
+    }
 }

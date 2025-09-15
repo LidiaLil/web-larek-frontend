@@ -10,7 +10,9 @@ interface IHeader {
 export class Header extends Component<IHeader> {
 	protected basketButton: HTMLButtonElement;
 	protected counterElement: HTMLElement;
-	protected events: IEvents
+	protected events: IEvents;
+	// Добавляем свойство для хранения данных
+    private _counter: number = 0;
 
 	constructor(container: HTMLElement, events: IEvents) {
 		super(container); // Вызов конструктора родителя
@@ -20,19 +22,35 @@ export class Header extends Component<IHeader> {
 		this.counterElement = ensureElement<HTMLElement>('.header__basket-counter', container)
 		// Обработчик клика на кнопку корзины
         this.basketButton.addEventListener('click', () => {
-            this.events.emit(AppStateChanges.basketOpen); // Эмитируем событие открытия корзины
+            this.events.emit(AppStateChanges.basketOpen); 
+        });
+		// Подписываемся на изменения корзины
+        this.events.on(AppStateChanges.basket, () => {
+            this.updateCounter();
         });
 	}
 
-	//получаем cсылку на DOM-элемент кнопки корзины
-	get basketButtonElement(): HTMLButtonElement {
+	// Метод для обновления счетчика
+    updateCounter(): void {
+        this.setText(this.counterElement, String(this._counter));
+    }
+
+    set counter(value: number) {
+        this._counter = value;
+        this.updateCounter();
+    }
+
+    get basketButtonElement(): HTMLButtonElement {
         return this.basketButton;
     }
 
-	// Сеттер для счетчика товаров в корине
-	set counter(value: number) {
-        this.setText(this.counterElement, value); //Используем метод родителя
-		console.log('Header counter:', value);
+    render(data?: IHeader): HTMLElement {
+        if (data?.counter !== undefined) {
+            this._counter = data.counter;
+            this.updateCounter();
+        }
+        return this.container;
+    }
 
         // Дополнительная логика для скрытия/показа счетчика при 0
         // if (value === 0) {
@@ -42,6 +60,6 @@ export class Header extends Component<IHeader> {
         // }
     }
 
-    }
+    
 
 

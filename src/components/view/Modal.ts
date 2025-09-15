@@ -1,16 +1,16 @@
 import { Component } from "../base/component";
 import { IEvents } from "../base/events";
 import { ensureElement } from "../../utils/utils";// Импортируем утилиты для безопасного получения элементов
+import { AppStateChanges } from "../model/AppState";
 
 interface ModalData {
     content: HTMLElement;
-    isOpen: boolean;
 }
 
 export class Modal extends Component<ModalData> {
-    protected modalContainer: HTMLElement;
-    protected modalContent: HTMLElement;
-    protected closeButton: HTMLButtonElement;
+    // protected _modalContainer: HTMLElement;
+    protected _modalContent: HTMLElement;
+    protected _closeButton: HTMLButtonElement;
     protected events: IEvents; // Брокер событий
 
     constructor(container: HTMLElement, events: IEvents) {
@@ -20,34 +20,46 @@ export class Modal extends Component<ModalData> {
         this.events = events;
 
         //Инициализация элементов согласно верстке
-        this.modalContainer = this.container;
-        this.closeButton = ensureElement<HTMLButtonElement>('.modal__close', this.container);
-        this.modalContent = ensureElement<HTMLElement>('.modal__content', this.container);
+        // this._modalContainer = this.container;
+        this._closeButton = ensureElement<HTMLButtonElement>('.modal__close', this.container);
+        this._modalContent = ensureElement<HTMLElement>('.modal__content', this.container);
 
-        // Закрытие по клику на оверлей
-        this.modalContainer.addEventListener('click', (event) => {
-            if (event.target === this.modalContainer) {
-                this.toggleState();
-            }
-        });
-
-        // Закрытие по кнопке
-        this.closeButton.addEventListener('click', () => this.toggleState());
+        // Обработчик клика на кнопку закрытия - вызывает метод modalClose
+        this._closeButton.addEventListener('click',this.modalClose.bind(this));
+        // Обработчик клика на содержимое модального окна - предотвращает всплытие события
+        // (чтобы клик по содержимому не закрывал модальное окно)
+        this._modalContent.addEventListener('click',(events) => events.stopPropagation());
+        // Обработчик клика по оверлею
+        this.container.addEventListener('click', this.modalClose.bind(this))
     }
 
     // Метод для установки содержимого
-    setContent(element: HTMLElement): void {
-        this.modalContent.replaceChildren(element);
+    set modalContent(element: HTMLElement) {
+        // Заменяем все дочерние элементы контейнера на новый элемент
+        this._modalContent.replaceChildren(element);
+    }
+    
+// открытие модального окна
+    modalOpen() {
+        // Добавляем CSS-класс для отображения модального окна
+        this.container.classList.add('modal_active');
+        this.events.emit(AppStateChanges.modalOpen)
+    }
+    
+    // закрытие модального окна
+    modalClose() {
+        this.container.classList.remove('modal_active');
+        this.modalContent = null;
+        this.events.emit(AppStateChanges.modalClose)
     }
 
-    // Переключение состояния модального окна
-    toggleState(force?: boolean): void {
-        const isActive = this.container.classList.toggle('modal_active', force);
-        
-        if (!isActive) {
-            this.events.emit('modal:close');
-        } else {
-            this.events.emit('modal:open'); 
-        }
+    render(data?: Partial<ModalData>): HTMLElement {
+        // Вызываем метод render родительского класса
+        super.render(data);
+        // Открываем модальное окно после рендеринга
+        this.modalOpen();
+        // Возвращаем DOM-элемент контейнера
+        return this.container;
     }
+
 }

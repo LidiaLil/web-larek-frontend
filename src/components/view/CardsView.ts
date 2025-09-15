@@ -1,107 +1,117 @@
 //Представление («фабрика» карточки) - отображение данных
 //Класс, который создает DOM-элемент для одного товара (карточки).
-
-import { EventEmitter, IEvents } from '../base/events';
-import { IItem } from '../../types';
+import { ICardActions, IItem } from '../../types';
 import { Component } from '../base/component';
-import { BasketModel } from '../model/BasketModel';
-import { AppStateChanges } from '../model/AppState';
+import { ensureElement } from '../../utils/utils';
 
 export class CardView extends Component<IItem> {
-	protected _description: HTMLElement;
-	protected _image: HTMLImageElement;
+	protected _description?: HTMLElement;
+	protected _image?: HTMLImageElement;
 	protected _title: HTMLElement;
-	protected _category: HTMLElement;
+	protected _category?: HTMLElement;
 	protected _price: HTMLElement;
-	protected _addButton: HTMLButtonElement | null; // Для карточек каталога
-	protected _deleteButton: HTMLButtonElement | null;  // Для карточек корзины
-	protected _id: string = '';
-	protected _indexElement: HTMLElement | null; // для нумерации в корзине
-
-	constructor(
-		container: HTMLElement, // DOM-элемент контейнера формы
-		protected events: IEvents // Система событий для коммуникации между компонентами
-	) {
+	protected _addButton?: HTMLButtonElement | null; // Для карточек каталога
+	protected _id?: string;
+	constructor(container: HTMLElement, 
+		events?: ICardActions) {
 		super(container); // Вызов конструктора родителя
 		//Клонирование и поиск элементов в контейнере согласно верстке (Подготовка View)
 		this._description = container.querySelector('.card__text');
 		this._image = container.querySelector('.card__image');
-		this._title = container.querySelector('.card__title');
+		this._title = ensureElement<HTMLElement>('.card__title', container);
 		this._category = container.querySelector('.card__category');
-		this._price = container.querySelector('.card__price');
-		this._addButton = container.querySelector('.card__button'); // кнопка каталога
-        this._deleteButton = container.querySelector('.basket__item-delete'); // кнопка корзины
-		this._indexElement = container.querySelector('.basket__item-index');
+		this._price = ensureElement<HTMLElement>('.card__price', container);
+		this._addButton = container.querySelector('.card__button');
 
 		// Добавляем обработчик с проверкой на существование кнопки
 		// Обработчик для кнопки добавления/удаления
-        if (this._addButton && this.events) {
-            this._addButton.addEventListener('click', () => {
-                this.events.emit(AppStateChanges.basket, { id: this._id });
-            });
-        }
-
-        // Обработчик для кнопки удаления в корзине
-        if (this._deleteButton && this.events) {
-            this._deleteButton.addEventListener('click', () => {
-                this.events.emit(AppStateChanges.basket, { id: this._id });
-            });
-        }
-	
+		if (events?.onClick) {
+			if (this._addButton) {
+				this._addButton.addEventListener('click', events.onClick);
+			}
+		} else {
+			container.addEventListener('click', events.onClick);
+		}
 	}
-	
 
 	set description(value: string) {
-        if (this._description) this.setText(this._description, value);
-    }
-    
-    set image(value: string) {
-        if (this._image) this.setImage(this._image, value, this.title);
-    }
-    
-    set title(value: string) {
-        if (this._title) this.setText(this._title, value);
-    }
-    
-    set category(value: string) {
-        if (this._category) this.setText(this._category, value);
-    }
-    
-    set price(value: number | null) {
-        if (this._price) {
-            this.setText(this._price, value !== null ? `${value} синапсов` : 'Бесценно');
-        }
-        if (this._addButton && !value) {
-            this._addButton.disabled = true;
-        }
-    }
-	set id(value: string) {
-		this._id = value;
+		this.setText(this._description, value);
+	}
+	set title(value: string) {
+		this.setText(this._title, value);
 	}
 
-	set index(value: string) {
-        if (this._indexElement) { // Проверяем, существует ли элемент
-            this.setText(this._indexElement, value);
-        }
+	set image(value: string) {
+		this.setImage(this._image, value, this.title);
+	}
+
+	set category(value: string) {
+		this.setText(this._category, value);
+	}
+
+	set price(value: number | null) {
+		if (this._price) {
+			this.setText(
+				this._price,
+				value !== null ? `${value} синапсов` : 'Бесценно'
+			);
+		}
+		if (this._addButton && !value) {
+			this._addButton.disabled = true;
+		}
+	}
+	set id(value: string) {
+		this.container.dataset.id = value;
+	}
+
+	set addButton(value: string) {
+		this.setText(this._addButton, value);
+	}
+
+	get title() {
+		return this._title.textContent || '';
+	}
+
+	get id(): string {
+		return this.container.dataset.id || '';
 	}
 
 	// Добавляем методы управления состоянием кнопки
-	setButtonState(inBasket: boolean, enabled: boolean = true) {
-		if (this._addButton) {
-			if (inBasket) {
-				this._addButton.textContent = 'Удалить из корзины';
-			} else {
-				this._addButton.textContent = 'В корзину';
-			}
-			this._addButton.disabled = !enabled;
-		}
-	}
-
-	// Метод для обновления состояния кнопки на основе модели
-	updateButtonState(basketModel: BasketModel) {
-		if (this._addButton && this._id) {
-			const inBasket = basketModel.isInBasket(this._id);
-			this.setButtonState(inBasket, this._price?.textContent !== 'Бесценно');
-		}
-	}
+	updateButtonState(isInBasket: boolean): void {
+        if (!this._addButton) return;
+        
+        if (this._price.textContent === 'Бесценно') {
+            this._addButton.textContent = 'Не продаётся';
+            this._addButton.disabled = true;
+        } else if (isInBasket) {
+            this._addButton.textContent = 'Удалить из корзины';
+            this._addButton.disabled = false;
+        } else {
+            this._addButton.textContent = 'Купить';
+            this._addButton.disabled = false;
+        }
+    }
+	
 }
+
+
+
+// // Добавляем методы управления состоянием кнопки
+// 	setButtonState(inBasket: boolean, enabled: boolean = true) {
+// 		if (this._addButton) {
+// 			if (inBasket) {
+// 				this._addButton.textContent = 'Удалить из корзины';
+// 			} else {
+// 				this._addButton.textContent = 'В корзину';
+// 			}
+// 			this._addButton.disabled = !enabled;
+// 		}
+// 	}
+
+// 	// Метод для обновления состояния кнопки на основе модели
+// 	updateButtonState(basketModel: BasketModel) {
+// 		if (this._addButton && this._id) {
+// 			const inBasket = basketModel.isInBasket(this._id);
+// 			this.setButtonState(inBasket, this._price?.textContent !== 'Бесценно');
+// 		}
+// 	}

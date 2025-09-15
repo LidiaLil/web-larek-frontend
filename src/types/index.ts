@@ -14,7 +14,7 @@ export interface IItem {
 
 // Данные о заказе, которые отправляются на сервер
 export interface IOrder {
-payment: 'card' | 'cash' | '';//картой, при получении и если не выбрано
+payment: PaymentMethod;
 email: string;
 phone: string;
 address: string;
@@ -27,3 +27,20 @@ export interface IOrderConfirmed {
   total: number;
 }
 
+export interface IBasket {
+  items: string[];
+	total: number;
+}
+
+// Описание интерфейса данных покупателя
+export interface IUser {
+	payment?: PaymentMethod;
+	address?: string;
+	email?: string;
+	phone?: string;
+}
+
+export interface ICardActions {
+	onClick: (event: MouseEvent) => void;
+}
+export type PaymentMethod = 'card' | 'cash' | '';
