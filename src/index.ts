@@ -1,11 +1,14 @@
 //Контроллер (index.ts) - связывает модель и представление
+// Инициализация приложения
 import './scss/styles.scss';
 import { CDN_URL, API_URL } from './utils/constants';
 import { EventEmitter } from './components/base/events';
-
+// Модели
 import { AppState, AppStateChanges } from './components/model/AppState';
 import { BasketModel } from './components/model/BasketModel';
-
+import { CardsModel } from './components/model/CardsModel';
+import { AppApi } from './components/model/AppApi';
+// Представления
 import { Modal } from './components/view/Modal';
 import { Gallery } from './components/view/Gallery';
 import { CardView } from './components/view/CardsView';
@@ -13,17 +16,13 @@ import { BasketView } from './components/view/BasketView';
 import { Header } from './components/view/Header';
 import { Order } from './components/view/OrderView';
 import { Contacts } from './components/view/Contacts';
-
+import { SuccessView } from './components/view/SuccessView';
+// Типы и утилиты
 import { IItem, IOrder } from './types';
 import { cloneTemplate, ensureElement } from './utils/utils';
-import { AppApi } from './components/model/AppApi';
-import { CardsModel } from './components/model/CardsModel';
-import { Form } from './components/view/Form';
-import { SuccessView } from './components/view/SuccessView';
 
 // Инициализация событий
 const events = new EventEmitter();
-
 // DOM-шаблоны и элементы
 const template = {
 	cardCatalogTemplate: ensureElement<HTMLTemplateElement>('#card-catalog'),
@@ -184,20 +183,17 @@ events.on(AppStateChanges.basketOpen, () => {
 
 // Форма заказа
 events.on(AppStateChanges.orderOpen, () => {
-	// Проверяем, что корзина не пустая
-	if (model.basket.getBasketCount() === 0) {
-		console.log('Корзина пуста');
-		return;
-	}
+    // Проверяем, что корзина не пустая
+    if (model.basket.getBasketCount() === 0) {
+        console.log('Корзина пуста');
+        return; 
+    }
 
-	// Устанавливаем содержимое окна Способ оплаты и адрес
-	modal.modalContent = views.orderForm.render({
-		address: '',
-		payment: '',
-	});
-
-	// Открываем  окно Способ оплаты
-	modal.modalOpen();
-	console.log('address modal');
+    // Открываем форму заказа
+    modal.modalContent = views.orderForm.render({
+        address: '',
+        payment: '',
+    });
+    modal.modalOpen();
+    console.log('address modal');
 });
-
