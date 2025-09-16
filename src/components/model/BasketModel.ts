@@ -11,6 +11,7 @@ export interface IBasketModel {
     getBasketCount(): number;
     isInBasket(id: string): boolean; // Проверка наличия товара в корзине
     getItems(): IItem[]; //Получить список товаров в корине
+    clearBasket(): void;
 }
 
 export class BasketModel implements IBasketModel {
@@ -56,5 +57,11 @@ export class BasketModel implements IBasketModel {
     // Получить все товары из корзины
     getItems(): IItem[] {
         return [...this._items]; // Возвращаем копию массива
+    }
+
+    // Метод очистки корзины
+    clearBasket(): void {
+        this._items = [];
+        this.events.emit(AppStateChanges.basket, this._items);
     }
 }

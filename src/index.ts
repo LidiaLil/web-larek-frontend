@@ -219,7 +219,7 @@ events.on(AppStateChanges.orderOpen, () => {
 });
 
 // Открываем форму контактов
-events.on('order:submit', () => {
+events.on(AppStateChanges.orderSubmit, () => {
 	modal.modalContent = views.contactsForm.render({
 		email: '',
 		phone: '',
@@ -232,7 +232,7 @@ events.on('order:submit', () => {
 });
 
 // После формы контактов открываем успешный заказ
-events.on('contacts:submit', () => {
+events.on(AppStateChanges.contactsSubmit, () => {
 	// Здесь можно дернуть API, но пока берём сумму из корзины
 	modal.modalContent = views.success.render({
 		total: model.basket.getBasketTotal(),
@@ -240,4 +240,32 @@ events.on('contacts:submit', () => {
 	modal.modalOpen();
 
 	console.log('Открываем успешный заказ');
+});
+
+events.on(AppStateChanges.success, () => {
+	// Очищаем корзину
+	model.basket.clearBasket();
+
+	// Закрываем модалку
+	modal.modalClose();
+
+	// Показываем главную страницу с каталогом
+	views.gallery.setCatalog(
+		model.card.items.map((item: IItem) => {
+			const card = new CardView(cloneTemplate(template.cardCatalogTemplate), {
+				onClick: (event: MouseEvent) => {
+					event.stopPropagation();
+					const isInBasket = model.basket.isInBasket(item.id);
+					if (!isInBasket) {
+						model.basket.addToBasket(item);
+						card.updateButtonState(true);
+					}
+				},
+			});
+
+			const renderedCard = card.render(item);
+			card.updateButtonState(model.basket.isInBasket(item.id));
+			return renderedCard;
+		})
+	);
 });

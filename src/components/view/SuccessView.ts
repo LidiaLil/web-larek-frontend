@@ -1,7 +1,7 @@
 import { Component } from '../base/component';
 import { IEvents } from '../base/events';
 import { ensureElement } from '../../utils/utils';
-import { AppStateModals } from '../model/AppState';
+import { AppStateChanges, AppStateModals } from '../model/AppState';
 
 export interface ISuccessView {
 	total: number; // сколько списано
@@ -22,12 +22,12 @@ export class SuccessView extends Component<ISuccessView> {
 			container
 		);
 		this._button = ensureElement<HTMLButtonElement>(
-			'.order-success__close',
+			'.order-success__close', // кнопка "Новые покупки"
 			container
 		);
 
 		this._button.addEventListener('click', () => {
-			events.emit(AppStateModals.success);
+			events.emit(AppStateChanges.success);
 		});
 	}
 
@@ -36,9 +36,4 @@ export class SuccessView extends Component<ISuccessView> {
 		this._description.textContent = `Списано ${value} синапсов`;
 	}
 
-	// метод для рендера
-	render(data: ISuccessView): HTMLElement {
-		this.total = data.total;
-		return this.container;
-	}
 }

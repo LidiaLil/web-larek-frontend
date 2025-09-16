@@ -13,21 +13,21 @@ export enum AppStateModals {
 	none = 'modal:none', // Нет открытых модалок
 }
 
-// Какие изменения состояния приложения могут происходить
+// Изменения состояния приложения
 export enum AppStateChanges {
-	items = 'items:change', // когда загрузились все товары с сервера
-	select = 'item:select', // когда пользователь выбирает товар для просмотра
-	modalOpen = 'modal:open', // при открытии любой модалки
-	modalClose = 'modal:close', // при закрытии любой модалки
-	basket = 'basket:changed', // при добавлении/удалении из корзины
+	items = 'items:change', // загрузка товаров
+	select = 'item:select', // выбор товара
+	modalOpen = 'modal:open', // открытие модалки
+	modalClose = 'modal:close', // закрытие модалки
+	basket = 'basket:changed', // корзина изменилась
 	basketOpen = 'basket:open', // открытие корзины
-	// total = 'total:change', // Изменилась сумма корзины
-	order = 'order:change', // при заполнении данных заказа
+	order = 'order:change', // изменения данных заказа
 	orderOpen = 'order:open', // открытие формы заказа
-	orderDone = 'order:done', // заказ готов к завершению
-	contactsOpen = 'contact:open', // открытие формы контактов
-	error = 'message:error', // при показе сообщения об ошибке или успехе
-	success = 'order:success', // Заказ оформлен
+	orderSubmit = 'order:submit', // отправка формы заказа
+	contactsSubmit = 'contacts:submit', // отправка формы контактов
+	orderDone = 'order:done', // заказ готов
+	error = 'message:error', // ошибки формы или приложения
+	success = 'success:newPurchase', // заказ успешно оформлен
 }
 
 export class AppState {
@@ -84,7 +84,7 @@ export class AppState {
 	}
 
 	clearBasket() {
-		this.clearBasket();
+		this.basket.items = [];
 		this.basket.total = 0;
 		this.events.emit(AppStateChanges.basket, this.basket);
 	}
