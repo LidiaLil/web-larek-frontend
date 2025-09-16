@@ -59,7 +59,7 @@ export class CardView extends Component<IItem> {
 			);
 		}
 		if (this._addButton && !value) {
-			this._addButton.disabled = true;
+			this.setDisabled(this._addButton, true);
 		}
 	}
 	set id(value: string) {

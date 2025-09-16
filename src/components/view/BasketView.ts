@@ -41,14 +41,14 @@ export class BasketView extends Component<IBasketView> {
 
 		// Обработчик клика на кнопку оформления заказа
 		this._basketButton.addEventListener('click', this.handleCheckout);
-		this._basketButton.disabled = true; // по умолчанию кнопка неактивна
+		this.setDisabled(this._basketButton, true); // по умолчанию кнопка неактивна
 	}
 
 	//Метод обновления представления
 	updateItems(items: HTMLElement[]) {
 		if (items.length) {
 			this._basketList.replaceChildren(...items);
-			this._basketButton.disabled = false;
+			this.setDisabled(this._basketButton, false);
 		} else {
 			this._basketList.replaceChildren(
 				createElement<HTMLParagraphElement>('p', {
@@ -56,7 +56,7 @@ export class BasketView extends Component<IBasketView> {
 					textContent: 'Корзина пуста',
 				})
 			);
-			this._basketButton.disabled = true;
+			this.setDisabled(this._basketButton, true);
 		}
 	}
 

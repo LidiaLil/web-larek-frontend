@@ -1,3 +1,6 @@
+<!-- "Нужно использовать синтаксис markdown, чтобы было удобнее читать документацию в Readme"
+Я не наю как отредактировать((( -->
+
 # Проектная работа "Веб-ларек"
 
 План:
@@ -48,6 +51,44 @@ npm run build
 ```
 yarn build
 ```
+
+3.Описание базовых классов, их предназначение и функции. Опционально — приложить к проекту UML-схему.
+// Полное описание товара, полученное с API
+interface IItem {
+id: string;//идентификатор
+description: string;//описание
+image: string;//фото
+title: string;//навание
+category: string;//категория
+price: number | null; // если не указана, то null
+}
+
+// Данные о заказе, которые отправляются на сервер
+interface IOrder {
+payment: 'card' | 'cash' | '';//картой, при получении и если не выбрано
+email: string;//эмайл
+phone: string;//телефон
+address: string;//адрес
+total: number; // Сумма заказа
+items: string[]; // Массив ID товаров
+}
+
+// Базовый класс для работы с API
+export class Api {
+readonly baseUrl: string; // Базовый URL API
+protected options: RequestInit; // Настройки запросов по умолчанию
+
+    // Конструктор класса
+    constructor(baseUrl: string, options: RequestInit = {}) {
+        this.baseUrl = baseUrl;
+        this.options = {
+            headers: {
+                'Content-Type': 'application/json', // Устанавливаем JSON-заголовок
+                ...(options.headers as object ?? {}) // Добавляем пользовательские заголовки
+            }
+        };
+    }
+    }
 
 Архитектура приложения
 Приложение построено по парадигме MVP (Model-View-Presenter):
