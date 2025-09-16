@@ -86,21 +86,19 @@ export class CardView extends Component<IItem> {
 
 	// Добавляем методы управления состоянием кнопки
 	updateButtonState(isInBasket: boolean): void {
-        if (!this._addButton) return;
-        
-        if (this._price.textContent === 'Бесценно') {
-            this._addButton.textContent = 'Не продаётся';
-            this._addButton.disabled = true;
-        } else if (isInBasket) {
-            this._addButton.textContent = 'Удалить из корзины';
-            this._addButton.disabled = false;
-        } else {
-            this._addButton.textContent = 'Купить';
-            this._addButton.disabled = false;
-        }
-
-		
+    if (!this._addButton) return;
+    
+    if (this._price && this._price.textContent === 'Бесценно') {
+        this.setText(this._addButton, 'Не продаётся');
+        this.setDisabled(this._addButton, true);
+    } else if (isInBasket) {
+        this.setText(this._addButton, 'Удалить из корзины');
+        this.setDisabled(this._addButton, false);
+    } else {
+        this.setText(this._addButton, 'Купить');
+        this.setDisabled(this._addButton, false);
     }
+}
 	
 }
 

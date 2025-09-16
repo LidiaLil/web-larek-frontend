@@ -33,7 +33,7 @@ export class SuccessView extends Component<ISuccessView> {
 
 	// сеттер для текста
 	set total(value: number) {
-		this._description.textContent = `Списано ${value} синапсов`;
-	}
+    this.setText(this._description, `Списано ${value} синапсов`);
+}
 
 }

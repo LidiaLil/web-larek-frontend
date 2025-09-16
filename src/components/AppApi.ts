@@ -1,6 +1,6 @@
-import { IItem } from "../../types";
-import { Api, ApiPostMethods, ApiListResponse } from "../base/api";
-import { IOrder, IOrderConfirmed } from "../../types"; 
+import { IItem } from "../types";
+import { Api, ApiPostMethods, ApiListResponse } from "./base/api";
+import { IOrder, IOrderConfirmed } from "../types"; 
 
 export interface IApi {
     cdn: string;  // Базовый URL для CDN

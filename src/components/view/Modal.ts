@@ -41,17 +41,16 @@ export class Modal extends Component<ModalData> {
     
 // открытие модального окна
     modalOpen() {
-        // Добавляем CSS-класс для отображения модального окна
-        this.container.classList.add('modal_active');
-        this.events.emit(AppStateChanges.modalOpen)
-    }
+    this.toggleClass(this.container, 'modal_active', true);
+    this.events.emit(AppStateChanges.modalOpen);
+}
     
     // закрытие модального окна
     modalClose() {
-        this.container.classList.remove('modal_active');
-        this.modalContent = null;
-        this.events.emit(AppStateChanges.modalClose)
-    }
+    this.toggleClass(this.container, 'modal_active', false);
+    this.modalContent = null;
+    this.events.emit(AppStateChanges.modalClose);
+}
 
     render(data?: Partial<ModalData>): HTMLElement {
         // Вызываем метод render родительского класса

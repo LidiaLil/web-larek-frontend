@@ -7,7 +7,7 @@ import { EventEmitter } from './components/base/events';
 import { AppState, AppStateChanges } from './components/model/AppState';
 import { BasketModel } from './components/model/BasketModel';
 import { CardsModel } from './components/model/CardsModel';
-import { AppApi } from './components/model/AppApi';
+import { AppApi } from './components/AppApi';
 // Представления
 import { Modal } from './components/view/Modal';
 import { Gallery } from './components/view/Gallery';

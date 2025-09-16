@@ -50,15 +50,15 @@ export class Order extends Form<IOrder> {
     }
 
     // Выбор способа оплаты
-    selectPayment(payment: 'card' | 'cash'): void {
-        if (payment === 'card') {
-            this._cardButton.classList.add('button_alt-active');
-            this._cashButton.classList.remove('button_alt-active');
-        } else {
-            this._cashButton.classList.add('button_alt-active');
-            this._cardButton.classList.remove('button_alt-active');
-        }
-    }
+	selectPayment(payment: 'card' | 'cash'): void {
+		if (payment === 'card') {
+			this.toggleClass(this._cardButton, 'button_alt-active', true);
+			this.toggleClass(this._cashButton, 'button_alt-active', false);
+		} else {
+			this.toggleClass(this._cashButton, 'button_alt-active', true);
+			this.toggleClass(this._cardButton, 'button_alt-active', false);
+		}
+	}
 
     // Валидация формы
     validateForm(): boolean {

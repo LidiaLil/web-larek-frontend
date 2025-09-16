@@ -49,93 +49,334 @@ npm run build
 yarn build
 ```
 
-3.Описание базовых классов, их предназначение и функции. Опционально — приложить к проекту UML-схему.
-// Полное описание товара, полученное с API
-interface IItem {
-id: string;//идентификатор
-description: string;//описание
-image: string;//фото
-title: string;//навание
-category: string;//категория
-price: number | null; // если не указана, то null
-}
-
-// Данные о заказе, которые отправляются на сервер
-interface IOrder {
-payment: 'card' | 'cash' | '';//картой, при получении и если не выбрано
-email: string;//эмайл
-phone: string;//телефон
-address: string;//адрес
-total: number; // Сумма заказа
-items: string[]; // Массив ID товаров
-}
-
-// Базовый класс для работы с API
-export class Api {
-readonly baseUrl: string; // Базовый URL API
-protected options: RequestInit; // Настройки запросов по умолчанию
-
-    // Конструктор класса
-    constructor(baseUrl: string, options: RequestInit = {}) {
-        this.baseUrl = baseUrl;
-        this.options = {
-            headers: {
-                'Content-Type': 'application/json', // Устанавливаем JSON-заголовок
-                ...(options.headers as object ?? {}) // Добавляем пользовательские заголовки
-            }
-        };
-    }
-    }
-
 Архитектура приложения
-
-Код приложения разделен на слои согласно парадигме MVP
+Приложение построено по парадигме MVP (Model-View-Presenter):
 
 1. Model (Модель) - Слой данных и бизнес-логики
-   Что относится к Модели:
+   BasketModel
+   Назначение: Управляет состоянием корзины. Содержит методы для добавления, удаления товаров, подсчета суммы и количества.
 
-AppApi (наследуется от Api): Отвечает исключительно за общение с сервером (GET/POST запросы). Инкапсулирует логику преобразования данных (например, добавление cdn к URL изображений).
+Конструктор:
 
-BasketModel: Управляет состоянием корзины. Содержит методы для добавления, удаления товаров, подсчета суммы и количества. Это ядро бизнес-логики корзины.
+typescript
+constructor(events: IEvents)
+events: IEvents - система событий для уведомления об изменениях
 
-AppState: Предназначен для хранения глобального состояния приложения (например, списка всех товаров items).
+Методы:
 
-CardsModal: Выполняет роль модели для каталога товаров. Хранит загруженные с сервера товары и уведомляет систему об их изменении.
+addToBasket(item: IItem): void - добавить товар в корзину
 
-Принципы:
+removeFromBasket(id: string): void - удалить товар из корзины
 
-Модели не знают о существовании View.
+getBasketTotal(): number - получить общую сумму
 
-Они изменяют своё состояние и уведомляют о этом через систему событий EventEmitter. Его функции: возможность установить и снять слушателей событий, вызвать слушателей при возникновении события».
-Основные методы, реализуемые классом описаны интерфейсом `IEvents`:
+getBasketCount(): number - получить количество товаров
 
-- `on` - подписка на событие
-- `emit` - инициализация события
-- `trigger` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие
+isInBasket(id: string): boolean - проверить наличие товара
+
+getItems(): IItem[] - получить все товары
+
+clearBasket(): void - очистить корзину
+
+AppState
+Назначение: Хранит глобальное состояние приложения (товары, выбранный товар, корзина, данные заказа).
+
+Конструктор:
+
+typescript
+constructor(data: Partial<AppState>, events: IEvents)
+data: Partial<AppState> - начальные данные состояния
+
+events: IEvents - система событий
+
+Свойства:
+
+items: IItem[] - список всех товаров
+
+selectedItem: IItem | null - выбранный товар
+
+basket: IBasket - данные корзины
+
+order: IOrder - данные заказа
+
+Методы:
+
+setItems(items: IItem[]): void - установить список товаров
+
+setSelectedItem(item: IItem): void - установить выбранный товар
+
+setFieldsOder() - установить поля заказа
+
+validation() - валидация данных
+
+CardsModel
+Назначение: Модель для каталога товаров. Хранит загруженные с сервера товары.
+
+Конструктор:
+
+typescript
+constructor(events: IEvents)
+events: IEvents - система событий
+
+Методы:
+
+setItems(items: IItem[]): void - установить список товаров
 
 2. View (Представление) - Слой отображения
-   Что относится к View:
-   Все классы, наследуемые от Component:
+   CardView
+   Назначение: Отображает карточку товара в каталоге и в превью.
 
-CardView: Отображает карточку товара в каталоге и в превью. Пассивно слушает клики и транслирует их в виде событий (например, 'add').
+Конструктор:
 
-BasketView: Отображает содержимое корзины (список товаров, общую сумму, кнопку оформления). Получает готовые HTML-элементы товаров от "Презентера" и просто отображает их.
+typescript
+constructor(container: HTMLElement, events?: ICardActions)
+container: HTMLElement - DOM-элемент контейнера
 
-Header: Отображает иконку корзины и счетчик товаров в ней.
+events?: ICardActions - обработчики событий
 
-Gallery: Контейнер для отображения каталога карточек товаров.
+Методы:
 
-Modal: Универсальное модальное окно. Умеет показывать и скрывать любой переданный ему контент.
+updateButtonState(isInBasket: boolean): void - обновить состояние кнопки
 
-Order и Contacts (наследуются от Form): Представляют собой формы ввода данных. Их главная задача — отобразить поля, собрать данные с них и отправить событие о submit.
+BasketView
+Назначение: Отображает содержимое корзины.
 
-Принципы:
+Конструктор:
 
-View — "глупые" компоненты. Они не знают, откуда берутся данные.
+typescript
+constructor(container: HTMLElement, events: IEvents)
+container: HTMLElement - DOM-элемент контейнера
 
-Их задачи: отрисовать то, что им передали, и сообщить о действиях пользователя (клики, ввод данных) через события.
+events: IEvents - система событий
 
-3. Presenter (Посредник) - Слой-оркестратор
-   Роль Презентера выполняет файл index.ts.
+Методы:
 
-Это ключевое наблюдение. Вместо выделения отдельных Presenter-классов для каждой View, используетьсяглавный контроллер (или "корневой презентер"), который связывает всё воедино через подписку на события.
+updateItems(items: HTMLElement[]): void - обновить список товаров
+
+setTotal(value: number): void - установить общую сумму
+
+refreshIndices() - обновить порядковые номера
+
+Header
+Назначение: Отображает иконку корзины и счетчик товаров.
+
+Конструктор:
+
+typescript
+constructor(container: HTMLElement, events: IEvents)
+container: HTMLElement - DOM-элемент контейнера
+
+events: IEvents - система событий
+
+Gallery
+Назначение: Контейнер для отображения каталога карточек товаров.
+
+Конструктор:
+
+typescript
+constructor(container: HTMLElement, events: IEvents)
+container: HTMLElement - DOM-элемент контейнера
+
+events: IEvents - система событий
+
+Методы:
+
+setCatalog(items: HTMLElement[]): void - установить каталог товаров
+
+Modal
+Назначение: Универсальное модальное окно.
+
+Конструктор:
+
+typescript
+constructor(container: HTMLElement, events: IEvents)
+container: HTMLElement - DOM-элемент контейнера
+
+events: IEvents - система событий
+
+Методы:
+
+modalOpen() - открыть модальное окно
+
+modalClose() - закрыть модальное окно
+
+Order (наследуется от Form)
+Назначение: Форма ввода данных заказа (адрес и способ оплаты).
+
+Конструктор:
+
+typescript
+constructor(container: HTMLFormElement, events: IEvents)
+container: HTMLFormElement - DOM-элемент формы
+
+events: IEvents - система событий
+
+Методы:
+
+selectPayment(payment: 'card' | 'cash'): void - выбрать способ оплаты
+
+validateForm(): boolean - валидация формы
+
+Contacts (наследуется от Form)
+Назначение: Форма ввода контактных данных (email и телефон).
+
+Конструктор:
+
+typescript
+constructor(container: HTMLFormElement, events: IEvents)
+container: HTMLFormElement - DOM-элемент формы
+
+events: IEvents - система событий
+
+SuccessView
+Назначение: Отображение успешного оформления заказа.
+
+Конструктор:
+
+typescript
+constructor(container: HTMLElement, events: IEvents)
+container: HTMLElement - DOM-элемент контейнера
+
+events: IEvents - система событий
+
+3. Базовые классы
+   Api
+   Назначение: Базовый класс для работы с API.
+
+Конструктор:
+
+typescript
+constructor(baseUrl: string, options: RequestInit = {})
+baseUrl: string - базовый URL API
+
+options: RequestInit - настройки запросов
+
+Методы:
+
+get(uri: string): Promise<object> - GET запрос
+
+post(uri: string, data: object, method?: ApiPostMethods): Promise<object> - POST/PUT/DELETE запросы
+
+Component
+Назначение: Базовый компонент для создания всех классов представления.
+
+Конструктор:
+
+typescript
+constructor(protected readonly container: HTMLElement)
+container: HTMLElement - DOM-элемент для рендеринга
+
+Методы:
+
+render(data?: Partial<T>): HTMLElement - отрисовка компонента
+
+Утилиты для работы с DOM: toggleClass, setText, setDisabled, setHidden, setVisible, setImage
+
+EventEmitter
+Назначение: Брокер событий для реализации паттерна Observer.
+
+Конструктор:
+
+typescript
+constructor()
+Методы:
+
+on<T extends object>(eventName: EventName, callback: (event: T) => void) - подписка на событие
+
+off(eventName: EventName, callback: Subscriber) - отписка от события
+
+emit<T extends object>(eventName: string, data?: T) - инициация события
+
+trigger<T extends object>(eventName: string, context?: Partial<T>) - создание триггера события
+
+4. Presenter (Посредник)
+   Роль презентера выполняет главный контроллер в файле index.ts, который связывает все компоненты через систему событий.
+
+Основные типы и интерфейсы
+typescript
+// Полное описание товара
+interface IItem {
+id: string;
+description: string;
+image: string;
+title: string;
+category: string;
+price: number | null;
+index?: string;
+}
+
+// Данные о заказе
+interface IOrder {
+payment: PaymentMethod;
+email: string;
+phone: string;
+address: string;
+total: number;
+items: string[];
+}
+
+// Подтверждение заказа
+interface IOrderConfirmed {
+id: string;
+total: number;
+}
+
+// Корзина
+interface IBasket {
+items: string[];
+total: number;
+}
+
+// Данные покупателя
+interface IUser {
+payment?: PaymentMethod;
+address?: string;
+email?: string;
+phone?: string;
+}
+
+// Действия с карточкой
+interface ICardActions {
+onClick: (event: MouseEvent) => void;
+}
+
+// Способ оплаты
+type PaymentMethod = 'card' | 'cash' | '';
+
+// Ответ API со списком
+type ApiListResponse<Type> = {
+total: number;
+items: Type[];
+};
+
+// HTTP методы для изменения данных
+type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
+События приложения
+Приложение использует систему событий для коммуникации между компонентами:
+
+typescript
+enum AppStateChanges {
+items = 'items:change', // загрузка товаров
+select = 'item:select', // выбор товара
+modalOpen = 'modal:open', // открытие модалки
+modalClose = 'modal:close', // закрытие модалки
+basket = 'basket:changed', // корзина изменилась
+basketOpen = 'basket:open', // открытие корзины
+order = 'order:change', // изменения данных заказа
+orderOpen = 'order:open', // открытие формы заказа
+orderSubmit = 'order:submit', // отправка формы заказа
+contactsSubmit = 'contacts:submit', // отправка формы контактов
+orderDone = 'order:done', // заказ готов
+error = 'message:error', // ошибки формы или приложения
+success = 'success:newPurchase' // заказ успешно оформлен
+}
+Работа с DOM
+Для безопасной работы с DOM элементами используются утилиты:
+
+ensureElement<T>(selector: string, container?: HTMLElement): T - гарантированное получение элемента
+
+cloneTemplate<T extends HTMLElement>(template: HTMLTemplateElement): T - клонирование шаблона
+
+createElement<T extends HTMLElement>(tagName: string, options?: ElementCreationOptions): T - создание элемента
+
+Эта архитектура обеспечивает четкое разделение ответственности между компонентами и легкость тестирования и поддержки кода.

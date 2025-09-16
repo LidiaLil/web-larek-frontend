@@ -79,11 +79,12 @@ export class BasketView extends Component<IBasketView> {
 
 	// Метод для обновления порядковых номеров
 	refreshIndices() {
-		Array.from(this._basketList.children).forEach((item, index) => {
-			const indexElement = item.querySelector('.basket__item-index');
-			if (indexElement) {
-				indexElement.textContent = (index + 1).toString();
-			}
-		});
-	}
+    Array.from(this._basketList.children).forEach((item, index) => {
+        const indexElement = item.querySelector('.basket__item-index') as HTMLElement;
+if (indexElement) {
+    this.setText(indexElement, (index + 1).toString());
+}
+
+    });
+}
 }
