@@ -199,7 +199,6 @@ views.basket.onCheckout(() => {
 	events.emit(AppStateChanges.orderOpen);
 });
 
-
 // Форма заказа
 events.on(AppStateChanges.orderOpen, () => {
 	// Проверяем, что корзина не пустая
@@ -207,8 +206,6 @@ events.on(AppStateChanges.orderOpen, () => {
 		console.log('Корзина пуста');
 		return;
 	}
-
-	
 
 	// Открываем форму заказа
 	modal.modalContent = views.orderForm.render({
@@ -234,3 +231,13 @@ events.on('order:submit', () => {
 	console.log('Открываем форму контактов');
 });
 
+// После формы контактов открываем успешный заказ
+events.on('contacts:submit', () => {
+	// Здесь можно дернуть API, но пока берём сумму из корзины
+	modal.modalContent = views.success.render({
+		total: model.basket.getBasketTotal(),
+	});
+	modal.modalOpen();
+
+	console.log('Открываем успешный заказ');
+});

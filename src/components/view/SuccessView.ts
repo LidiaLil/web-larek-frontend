@@ -4,13 +4,12 @@ import { ensureElement } from '../../utils/utils';
 import { AppStateModals } from '../model/AppState';
 
 export interface ISuccessView {
-	description(total: number): HTMLElement;
+	total: number; // сколько списано
 }
 
 export class SuccessView extends Component<ISuccessView> {
 	protected _description: HTMLElement;
 	protected _button: HTMLButtonElement;
-	
 
 	constructor(
 		container: HTMLElement, // DOM-элемент контейнера формы
@@ -32,8 +31,14 @@ export class SuccessView extends Component<ISuccessView> {
 		});
 	}
 
+	// сеттер для текста
+	set total(value: number) {
+		this._description.textContent = `Списано ${value} синапсов`;
+	}
 
-  set description(total: number) {
-    this._description.textContent = String(`Списано ${total} синапсов`);
-  }
+	// метод для рендера
+	render(data: ISuccessView): HTMLElement {
+		this.total = data.total;
+		return this.container;
+	}
 }
