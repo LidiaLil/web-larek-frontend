@@ -18,7 +18,7 @@ import { Order } from './components/view/OrderView';
 import { Contacts } from './components/view/Contacts';
 import { SuccessView } from './components/view/SuccessView';
 // Типы и утилиты
-import { IItem, IOrder } from './types';
+import { IItem, IOrder, IOrderFormData } from './types';
 import { cloneTemplate, ensureElement } from './utils/utils';
 
 // Инициализация событий
@@ -181,19 +181,56 @@ events.on(AppStateChanges.basketOpen, () => {
 	modal.modalOpen();
 });
 
+// Обработчик открытия модального окна
+events.on(AppStateChanges.modalOpen, () => {
+	console.log('Модальное окно открыто');
+	// блокировать прокрутку body
+	document.body.style.overflow = 'hidden';
+});
+
+// Обработчик закрытия модального окна
+events.on(AppStateChanges.modalClose, () => {
+	console.log('Модальное окно закрыто');
+	// Восстанавливаем прокрутку body
+	document.body.style.overflow = '';
+});
+
+views.basket.onCheckout(() => {
+	events.emit(AppStateChanges.orderOpen);
+});
+
+
 // Форма заказа
 events.on(AppStateChanges.orderOpen, () => {
-    // Проверяем, что корзина не пустая
-    if (model.basket.getBasketCount() === 0) {
-        console.log('Корзина пуста');
-        return; 
-    }
+	// Проверяем, что корзина не пустая
+	if (model.basket.getBasketCount() === 0) {
+		console.log('Корзина пуста');
+		return;
+	}
 
-    // Открываем форму заказа
-    modal.modalContent = views.orderForm.render({
-        address: '',
-        payment: '',
-    });
-    modal.modalOpen();
-    console.log('address modal');
+	
+
+	// Открываем форму заказа
+	modal.modalContent = views.orderForm.render({
+		address: '',
+		payment: '',
+		valid: false,
+		errors: '',
+	} as IOrderFormData);
+	modal.modalOpen();
+	console.log('Открываем форму заказа');
 });
+
+// Открываем форму контактов
+events.on('order:submit', () => {
+	modal.modalContent = views.contactsForm.render({
+		email: '',
+		phone: '',
+		valid: false,
+		errors: '',
+	} as IOrderFormData);
+
+	modal.modalOpen();
+	console.log('Открываем форму контактов');
+});
+

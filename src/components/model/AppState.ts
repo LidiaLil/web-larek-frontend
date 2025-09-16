@@ -1,5 +1,6 @@
 import { IBasket, IItem, IOrder, IUser, PaymentMethod } from '../../types';
 import { IEvents } from '../base/events';
+import { Order } from '../view/OrderView';
 
 //  Какие модальные окна у нас есть
 export enum AppStateModals {
@@ -20,7 +21,7 @@ export enum AppStateChanges {
 	modalClose = 'modal:close', // при закрытии любой модалки
 	basket = 'basket:changed', // при добавлении/удалении из корзины
 	basketOpen = 'basket:open', // открытие корзины
-	total = 'total:change', // Изменилась сумма корзины
+	// total = 'total:change', // Изменилась сумма корзины
 	order = 'order:change', // при заполнении данных заказа
 	orderOpen = 'order:open', // открытие формы заказа
 	orderDone = 'order:done', // заказ готов к завершению
@@ -30,9 +31,9 @@ export enum AppStateChanges {
 }
 
 export class AppState {
-	setFieldsOrder(arg0: string, payment: string) {
-		throw new Error('Method not implemented.');
-	}
+	// setFieldsOrder(arg0: string, payment: string) {
+	// 	throw new Error('Method not implemented.');
+	// }
 	items: IItem[] = [];
 	selectedItem: IItem | null = null; // Свойство для хранения выбранного товара
 	basket: IBasket = {
@@ -48,6 +49,7 @@ export class AppState {
 		total: 0,
 		items: [],
 	};
+
 	constructor(
 		protected data: Partial<AppState>, //все свойства AppState становятся необязательными
 		protected events: IEvents
@@ -67,6 +69,8 @@ export class AppState {
 
 	addBasket(item: IItem) {
 		this.addBasket(item);
+		this.basket.total = this.basket.total + item.price;
+		this.events.emit(AppStateChanges.basket, this.basket);
 	}
 
 	inBasket(item: IItem) {
@@ -75,10 +79,14 @@ export class AppState {
 
 	removeFromBasket(item: IItem) {
 		this.removeFromBasket(item);
+		this.basket.total = this.basket.total - item.price;
+		this.events.emit(AppStateChanges.basket, this.basket);
 	}
 
 	clearBasket() {
 		this.clearBasket();
+		this.basket.total = 0;
+		this.events.emit(AppStateChanges.basket, this.basket);
 	}
 
 	setPayMethod(method: PaymentMethod) {
@@ -131,18 +139,18 @@ export class AppState {
 		// Валидация email
 		if (!this.order.email) {
 			errors.email = 'Введите email';
-
-			// Валидация телефона
-			if (!this.order.phone) {
-				errors.phone = 'Введите телефон';
-
-				// Сохраняем найденные ошибки в свойство класса
-				this.FormErrors = errors;
-				// Отправляем событие о наличии ошибок валидации
-				this.events.emit(AppStateChanges.error);
-				// Возвращаем true если ошибок нет (объект errors пустой), иначе false
-				return !Object.keys(errors).length;
-			}
 		}
+
+		// Валидация телефона
+		if (!this.order.phone) {
+			errors.phone = 'Введите телефон';
+		}
+
+		// Сохраняем найденные ошибки в свойство класса
+		this.FormErrors = errors;
+		// Отправляем событие о наличии ошибок валидации
+		this.events.emit(AppStateChanges.error);
+		// Возвращаем true если ошибок нет (объект errors пустой), иначе false
+		return !Object.keys(errors).length;
 	}
 }

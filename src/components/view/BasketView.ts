@@ -14,12 +14,16 @@ export class BasketView extends Component<IBasketView> {
 	protected _basketList: HTMLElement;
 	protected _basketButton: HTMLButtonElement;
 	protected _basketPrice: HTMLElement;
+	protected onCheckoutHandler?: () => void;
+	// Вызовется при клике на кнопку "Оформить"
+	handleCheckout = () => {
+		if (this.onCheckoutHandler) this.onCheckoutHandler();
+	};
 
 	constructor(
 		container: HTMLElement, // DOM-элемент контейнера формы
-		protected events: IEvents // Система событий для коммуникации между компонентами
-	) // protected model: IBasketModel // Добавляем модель
-	{
+		protected events: IEvents // Система событий для коммуникации между компонентами // protected model: IBasketModel // Добавляем модель
+	) {
 		super(container); // Вызов конструктора родительского класса Component
 
 		this._basketList = ensureElement<HTMLElement>(
@@ -36,30 +40,15 @@ export class BasketView extends Component<IBasketView> {
 		);
 
 		// Обработчик клика на кнопку оформления заказа
-		this._basketButton.addEventListener('click', (event) => {
-			event.preventDefault();
-			// Эмитируем событие открытия модального окна контактов
-			this.events.emit(AppStateChanges.orderOpen);
-		});
-	}
-
-	// Метод для обновления состояния кнопки
-	setButtonState(isEnabled: boolean): void {
-		this._basketButton.disabled = !isEnabled;
-
-		// Добавляем стили для визуального отключения
-		if (!isEnabled) {
-			this._basketButton.classList.add('button_disabled');
-		} else {
-			this._basketButton.classList.remove('button_disabled');
-		}
+		this._basketButton.addEventListener('click', this.handleCheckout);
+		this._basketButton.disabled = true; // по умолчанию кнопка неактивна
 	}
 
 	//Метод обновления представления
 	updateItems(items: HTMLElement[]) {
 		if (items.length) {
 			this._basketList.replaceChildren(...items);
-			this.setDisabled(this._basketButton, false);
+			this._basketButton.disabled = false;
 		} else {
 			this._basketList.replaceChildren(
 				createElement<HTMLParagraphElement>('p', {
@@ -67,6 +56,7 @@ export class BasketView extends Component<IBasketView> {
 					textContent: 'Корзина пуста',
 				})
 			);
+			this._basketButton.disabled = true;
 		}
 	}
 
@@ -82,13 +72,18 @@ export class BasketView extends Component<IBasketView> {
 		return this.container;
 	}
 
+	// Подписка на событие "Оформить"
+	onCheckout(handler: () => void) {
+		this.onCheckoutHandler = handler;
+	}
+
 	// Метод для обновления порядковых номеров
-    refreshIndices() {
-        Array.from(this._basketList.children).forEach((item, index) => {
-            const indexElement = item.querySelector('.basket__item-index');
-            if (indexElement) {
-                indexElement.textContent = (index + 1).toString();
-            }
-        });
-    }
+	refreshIndices() {
+		Array.from(this._basketList.children).forEach((item, index) => {
+			const indexElement = item.querySelector('.basket__item-index');
+			if (indexElement) {
+				indexElement.textContent = (index + 1).toString();
+			}
+		});
+	}
 }

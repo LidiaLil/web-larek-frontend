@@ -44,3 +44,9 @@ export interface ICardActions {
 	onClick: (event: MouseEvent) => void;
 }
 export type PaymentMethod = 'card' | 'cash' | '';
+
+// Создаем интерфейс для данных формы
+export interface IOrderFormData extends IOrder {
+  valid: boolean;
+  errors: string;
+}

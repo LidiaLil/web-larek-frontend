@@ -8,6 +8,7 @@ import { AppStateChanges, AppStateModals } from "../model/AppState";
 
 
 export class Order extends Form<IOrder> {
+    [x: string]: any;
     // Только специфичные для Order элементы
     protected _cardButton: HTMLButtonElement;
     protected _cashButton: HTMLButtonElement;
@@ -29,27 +30,23 @@ export class Order extends Form<IOrder> {
         this._cardButton.addEventListener('click', (e) => {
             e.preventDefault();
             this.selectPayment('card');
+            this.validateForm(); // Добавляем валидацию
             this.emitChangeEvent();//Автосохранение данных
         });
 
         this._cashButton.addEventListener('click', (e) => {
             e.preventDefault();
             this.selectPayment('cash');
+            this.validateForm(); // Добавляем валидацию
             this.emitChangeEvent();
         });
 
         // Обработчик для адреса
         this._addressInput.addEventListener('input', () => {
+            this.validateForm(); // Добавляем валидацию
             this.emitChangeEvent();
         });
 
-        // Обработчик отправки формы
-        this.container.addEventListener('submit', (event) => {
-            event.preventDefault();
-            this.emitChangeEvent();
-            this.events.emit(AppStateChanges.contactsOpen);
-            
-        });
     }
 
     // Выбор способа оплаты
@@ -61,6 +58,28 @@ export class Order extends Form<IOrder> {
             this._cashButton.classList.add('button_alt-active');
             this._cardButton.classList.remove('button_alt-active');
         }
+    }
+
+    // Валидация формы
+    validateForm(): boolean {
+        const errors: string[] = [];
+        
+        // Проверка способа оплаты
+        if (!this.getSelectedPayment()) {
+            errors.push('Выберите способ оплаты');
+        }
+        
+        // Проверка адреса
+        const address = this._addressInput.value.trim();
+        if (!address) {
+            errors.push('Необходимо указать адрес');
+        }
+
+        // Устанавливаем ошибки и состояние кнопки
+        this.errors = errors.join('; ');
+        this.valid = errors.length === 0;
+        
+        return errors.length === 0;
     }
 
     // Эмит события изменения данных
@@ -80,11 +99,34 @@ export class Order extends Form<IOrder> {
     }
 
     // Получение данных формы
-    getFormData(): Record<string, string> {
+    protected getFormData(): Record<string, string> {
+        const formData = super.getFormData(); // Получаем данные из базовой формы
         return {
-            payment: this.getSelectedPayment(),
-            address: this._addressInput.value
+            ...formData,
+            payment: this.getSelectedPayment() // Добавляем способ оплаты
         };
     }
 
+    //render для инициализации валидации
+    render(data?: Partial<IOrder>): HTMLElement {
+        super.render(data);
+        
+        // Заполняем поля если переданы данные
+        if (data) {
+            if (data.address) {
+                this._addressInput.value = data.address;
+            }
+            // Устанавливаем выбранный способ оплаты
+            if (data.payment === 'card') {
+                this.selectPayment('card');
+            } else if (data.payment === 'cash') {
+                this.selectPayment('cash');
+            }
+        }
+        
+        // Запускаем валидацию после рендера
+        setTimeout(() => this.validateForm(), 0);
+        
+        return this.container;
+    }
 }

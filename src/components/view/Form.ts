@@ -7,7 +7,6 @@ export abstract class Form<T> extends Component<T> {
 	protected formElement: HTMLFormElement; // Элемент формы
 	protected submitButton: HTMLButtonElement; // Кнопка отправки
 	protected formErrors: HTMLElement; // Контейнер ошибок
-	protected formInputs: HTMLInputElement[]; // поля ввода (массив)
 
 	// Конструктор
 	constructor(
@@ -26,46 +25,36 @@ export abstract class Form<T> extends Component<T> {
 			'.form__errors',
 			this.container
 		);
-		this.formInputs = ensureAllElements<HTMLInputElement>(
-			'input', // ищет все инпуты внутри формы через ensureAllElements
-			this.formElement
-		);
 
 		//Обработчик отправки формы
 		this.formElement.addEventListener('submit', (event) => {
 			event.preventDefault(); // Предотвращаем стандартную отправку
-			this.submit(); // Вызываем метод submit текущего экземпляра
+			this.events.emit(`${this.formElement.name}:submit`, this.getFormData());
 		});
-	}
-	// метод для обработки отправки формы
-
-	protected submit(): void {
-		// Получаем данные формы в виде объекта
-		const formData = this.getFormData();
-
-		// Генерируем имя события на основе имени формы (например: "order:submit")
-		// и отправляем данные через систему событий
-		this.events.emit(`${this.formElement.name}:submit`, formData);
 	}
 
 	// Защищенный метод для сбора данных из всех полей формы
 	protected getFormData(): Record<string, string> {
-		// Создаем пустой объект для данных
-		const data: Record<string, string> = {};
+        const formData = new FormData(this.formElement);
+        const data: Record<string, string> = {};
+        
+        formData.forEach((value, key) => {
+            data[key] = value.toString();
+        });
+        
+        return data;
+    }
 
-		// Проходим по всем input элементам формы
-		this.formInputs.forEach((input) => {
-			// Используем имя input как ключ, а значение как значение
-			data[input.name] = input.value;
-		});
+    set valid(value: boolean) {
+        this.submitButton.disabled = !value;
+    }
 
-		// Возвращаем собранные данные
-		return data;
-	}
+    set errors(value: string) {
+        this.setText(this.formErrors, value);
+    }
 
-	// Публичный метод для очистки формы
-	clearForm(): void {
-		// Вызываем стандартный метод reset у формы HTML
-		this.formElement.reset();
-	}
+    render(data?: Partial<T>): HTMLElement {
+        super.render(data);
+        return this.container;
+    }
 }

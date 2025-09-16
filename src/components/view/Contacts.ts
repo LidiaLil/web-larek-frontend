@@ -10,6 +10,7 @@ export interface IContacts {
 }
 
 export class Contacts extends Form<IContacts> {
+    [x: string]: any;
     // Только специфичные для Contacts элементы
     //остальные элементы уже определены в родительском классе Form
     protected _phoneInput: HTMLInputElement;
@@ -30,28 +31,63 @@ export class Contacts extends Form<IContacts> {
 
         // Добавляем обработчики изменений
         this._phoneInput.addEventListener('input', () => {
-            this.events.emit(AppStateChanges.order, this.getFormData())
+            this.validateForm(); // Добавляем валидацию
+            this.emitChangeEvent();
         });
 
         this._emailInput.addEventListener('input', () => {
-            this.events.emit(AppStateChanges.order, this.getFormData())
+            this.validateForm(); // Добавляем валидацию
+            this.emitChangeEvent();
         });
 
-        // Обработчик отправки формы
-        this.container.addEventListener('submit', (event) => {
-            event.preventDefault();
-            this.events.emit(AppStateChanges.order, this.getFormData());
-            // Отправляем событие успешного завершения заказа
-            this.events.emit('order:success');
-        });
     }
 
-    // Метод для получения данных формы
-    getFormData(): Record<string, string> {
-        return {
-            phone: this._phoneInput.value,
-            email: this._emailInput.value
-        };
+    // Валидация формы контактов
+    validateForm(): boolean {
+        const errors: string[] = [];
+        
+        // Валидация email
+        const email = this._emailInput.value.trim();
+        if (!email) {
+            errors.push('Введите email');
+        } 
+        
+        // Валидация телефона
+        const phone = this._phoneInput.value.trim();
+        if (!phone) {
+            errors.push('Введите телефон');
+        } 
+
+        // Устанавливаем ошибки и состояние кнопки
+        this.errors = errors.join('; ');
+        this.valid = errors.length === 0;
+        
+        return errors.length === 0;
+    }
+
+    // Эмит события изменения данных
+    protected emitChangeEvent(): void {
+        this.events.emit(AppStateChanges.order, this.getFormData());
+    }
+
+    // render для инициализации валидации
+    render(data?: Partial<IContacts>): HTMLElement {
+        super.render(data);
+        
+        // Заполняем поля если переданы данные
+        if (data) {
+            if (data.phone) {
+                this._phoneInput.value = data.phone;
+            }
+            if (data.email) {
+                this._emailInput.value = data.email;
+            }
+        }
+        
+        // Запускаем валидацию после рендера
+        setTimeout(() => this.validateForm(), 0);
+        
+        return this.container;
     }
 
     // Геттеры
