@@ -31,9 +31,6 @@ export enum AppStateChanges {
 }
 
 export class AppState {
-	// setFieldsOrder(arg0: string, payment: string) {
-	// 	throw new Error('Method not implemented.');
-	// }
 	items: IItem[] = [];
 	selectedItem: IItem | null = null; // Свойство для хранения выбранного товара
 	basket: IBasket = {
@@ -67,21 +64,27 @@ export class AppState {
 		this.events.emit(AppStateChanges.select, item); // Уведомляем систему
 	}
 
-	addBasket(item: IItem) {
-		this.addBasket(item);
-		this.basket.total = this.basket.total + item.price;
-		this.events.emit(AppStateChanges.basket, this.basket);
-	}
+	addBasket(item: IItem): void {
+        if (!this.basket.items.includes(item.id)) {
+            this.basket.items.push(item.id);
+            this.basket.total += item.price ?? 0;
+            this.events.emit(AppStateChanges.basket, this.basket);
+        }
+    }
 
-	inBasket(item: IItem) {
-		this.inBasket(item);
-	}
+	inBasket(id: string): boolean {
+        return this.basket.items.includes(id);
+    }
 
-	removeFromBasket(item: IItem) {
-		this.removeFromBasket(item);
-		this.basket.total = this.basket.total - item.price;
-		this.events.emit(AppStateChanges.basket, this.basket);
-	}
+	removeFromBasket(id: string): void {
+        const index = this.basket.items.indexOf(id);
+        if (index > -1) {
+            const item = this.items.find(i => i.id === id);
+            this.basket.items.splice(index, 1);
+            this.basket.total -= item?.price ?? 0;
+            this.events.emit(AppStateChanges.basket, this.basket);
+        }
+    }
 
 	clearBasket() {
 		this.basket.items = [];
@@ -89,9 +92,9 @@ export class AppState {
 		this.events.emit(AppStateChanges.basket, this.basket);
 	}
 
-	setPayMethod(method: PaymentMethod) {
-		this.order.payment = method;
-	}
+	setPayMethod(method: PaymentMethod): void {
+        this.order.payment = method;
+    }
 
 	// Дополнительно можно добавить метод очистки выбранного товара
 	// clearSelectedItem(): void {

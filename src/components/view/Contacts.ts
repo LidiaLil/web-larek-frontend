@@ -10,7 +10,6 @@ export interface IContacts {
 }
 
 export class Contacts extends Form<IContacts> {
-    [x: string]: any;
     // Только специфичные для Contacts элементы
     //остальные элементы уже определены в родительском классе Form
     protected _phoneInput: HTMLInputElement;
@@ -40,6 +39,13 @@ export class Contacts extends Form<IContacts> {
             this.emitChangeEvent();
         });
 
+        // обработчик submit
+        this.container.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (this.validateForm()) {
+                this.events.emit(AppStateChanges.contactsSubmit, this.getFormData());
+            }
+        });
     }
 
     // Валидация формы контактов
@@ -65,10 +71,18 @@ export class Contacts extends Form<IContacts> {
         return errors.length === 0;
     }
 
-    // Эмит события изменения данных
-    protected emitChangeEvent(): void {
-        this.events.emit(AppStateChanges.order, this.getFormData());
-    }
+    getFormData(): Record<string, string> {
+    return {
+        phone: this._phoneInput.value.trim(),
+        email: this._emailInput.value.trim(),
+    };
+}
+
+// Эмит события изменения данных
+protected emitChangeEvent(): void {
+    // Отправляем только данные контактов
+    this.events.emit(AppStateChanges.order, this.getFormData());
+}
 
     // render для инициализации валидации
     render(data?: Partial<IContacts>): HTMLElement {

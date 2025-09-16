@@ -231,15 +231,54 @@ events.on(AppStateChanges.orderSubmit, () => {
 	console.log('Открываем форму контактов');
 });
 
-// После формы контактов открываем успешный заказ
-events.on(AppStateChanges.contactsSubmit, () => {
-	// Здесь можно дернуть API, но пока берём сумму из корзины
-	modal.modalContent = views.success.render({
-		total: model.basket.getBasketTotal(),
-	});
-	modal.modalOpen();
+// сохраняем данные
+// В index.ts добавьте этот обработчик
+events.on(AppStateChanges.order, (data: any) => {
+    // Сохраняем данные в AppState в зависимости от того, какие поля пришли
+    if (data.address !== undefined) {
+        model.appState.order.address = data.address;
+    }
+    if (data.payment !== undefined) {
+        model.appState.order.payment = data.payment as 'card' | 'cash';
+    }
+    if (data.email !== undefined) {
+        model.appState.order.email = data.email;
+    }
+    if (data.phone !== undefined) {
+        model.appState.order.phone = data.phone;
+    }
+    console.log('Данные сохранены в AppState:', model.appState.order);
+});
 
-	console.log('Открываем успешный заказ');
+// После формы контактов открываем успешный заказ
+events.on(AppStateChanges.contactsSubmit, (data: Record<string, string>) => {
+	// Подготавливаем данные для заказа
+	const orderData: IOrder = {
+		payment: model.appState.order.payment,
+		email: data.email,
+		phone: data.phone,
+		address: model.appState.order.address,
+		total: model.basket.getBasketTotal(),
+		items: model.basket.getItems().map((item) => item.id),
+	};
+
+	// Отправляем заказ на сервер с помощью postOrder
+	model.api
+		.postOrder(orderData)
+		.then((response) => {
+			console.log('Заказ успешно оформлен:', response);
+
+			// Показываем успешное сообщение с данными с сервера
+			modal.modalContent = views.success.render({
+				total: response.total,
+			});
+			modal.modalOpen();
+
+			console.log('Открываем успешный заказ');
+		})
+		.catch((error) => {
+			console.error('Ошибка оформления заказа:', error);
+		});
 });
 
 events.on(AppStateChanges.success, () => {

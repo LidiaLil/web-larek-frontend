@@ -8,7 +8,6 @@ import { AppStateChanges, AppStateModals } from "../model/AppState";
 
 
 export class Order extends Form<IOrder> {
-    [x: string]: any;
     // Только специфичные для Order элементы
     protected _cardButton: HTMLButtonElement;
     protected _cashButton: HTMLButtonElement;
@@ -45,6 +44,14 @@ export class Order extends Form<IOrder> {
         this._addressInput.addEventListener('input', () => {
             this.validateForm(); // Добавляем валидацию
             this.emitChangeEvent();
+        });
+
+        // обработчик submit
+        this.container.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (this.validateForm()) {
+                this.events.emit(AppStateChanges.orderSubmit, this.getFormData());
+            }
         });
 
     }
@@ -84,8 +91,13 @@ export class Order extends Form<IOrder> {
 
     // Эмит события изменения данных
     protected emitChangeEvent(): void {
-        this.events.emit(AppStateChanges.order, this.getFormData());
-    }
+    const data = this.getFormData();
+    // Сохраняем данные в AppState
+    this.events.emit(AppStateChanges.order, {
+        address: data.address,
+        payment: data.payment as 'card' | 'cash',
+    });
+}
 
 
     // Получение выбранного способа оплаты
@@ -103,7 +115,8 @@ export class Order extends Form<IOrder> {
         const formData = super.getFormData(); // Получаем данные из базовой формы
         return {
             ...formData,
-            payment: this.getSelectedPayment() // Добавляем способ оплаты
+            payment: this.getSelectedPayment(), // Добавляем способ оплаты
+            address: this._addressInput.value.trim() // Явно добавляем адрес
         };
     }
 
