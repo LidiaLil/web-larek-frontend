@@ -43,9 +43,11 @@ const headerContainer = ensureElement<HTMLElement>('.header__container'); //зн
 const model = {
 	card: new CardsModel(events), // данные о товарах
 	basket: new BasketModel(events), //о выбранных товарах
-	api: new AppApi(CDN_URL, API_URL), // данные с сервера
 	appState: new AppState({}, events), //данные с сервера
 };
+
+// Получение данных с сервера
+const api = new AppApi(CDN_URL, API_URL); // данные с сервера
 
 //UI-компоненты (Объект view-компонентов)
 const views = {
@@ -76,7 +78,7 @@ events.onAll((event) => {
 });
 
 // Получаем товары с сервера
-model.api
+api
 	.getItems()
 	.then((items) => {
 		model.card.setItems(items);
@@ -263,7 +265,7 @@ events.on(AppStateChanges.contactsSubmit, (data: Record<string, string>) => {
 	};
 
 	// Отправляем заказ на сервер с помощью postOrder
-	model.api
+	api
 		.postOrder(orderData)
 		.then((response) => {
 			console.log('Заказ успешно оформлен:', response);
